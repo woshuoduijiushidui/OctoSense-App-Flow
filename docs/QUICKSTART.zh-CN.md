@@ -343,6 +343,41 @@ my-notes 0.1.0 — PASSED
 
 App Hub 的 [`hub` 命令参考](https://github.com/OctoSense-org/OctoSense-App-Hub/blob/main/docs/SUBMITTING.zh-CN.md#hub-命令)列出了所有 `hub` 命令，以及每个命令由谁运行、用在提交的哪一步。
 
+### 8a. 在宿主运行之前，先静态检查你写的东西
+
+`check` 是准入门禁，而且刻意窄：manifest、digest、声明的主机。它不说你的
+**代码**能不能跑。`lint` 是另一半——同样的咨询立场，只是更早一层：
+
+```sh
+tools/octo lint ~/apps/my-app/bundle
+```
+
+它对路径跑每一个适用的检查器，并回报最差的状态：
+
+| 检查器 | 读什么 | 查什么 |
+| --- | --- | --- |
+| `bindings` | 应用包的 `page.card` 与 `bindings.json`（纯文本） | 卡片 ↔ 宿主服务契约：卡片读了却没声明的名字、首帧无法解析的读取、在 `when X.is_ok` 保护之外读取失败调用、manifest 未授予的服务 |
+| `l0` | `.card` 与 `.l0` 文件 | L0 档案：语法、级别、头部、主题可移植性——旁边有 kit 时还包括能否降级 |
+| `splash` | `main.splash` | 应用本身，在一次性 isolate 里用宿主安装的同一套 VM、widget 注册表和 host 桥求值：未声明的名字、不存在的 widget 或属性、类型不匹配——都带自己的行列号和 VM 的 `Did you mean` 列表——外加应用请求的宿主服务与 manifest 声明之间的差额 |
+
+它们都不做准入判断；那是 `check` 的事。每个检查器都从它所检查的仓库构建，
+所以检查器与它读取的框架是同一个 revision：
+
+```sh
+cargo build -p octoscript-makepad --bin l0check                                          # L0
+cargo build --release -p makepad-widgets --bin splashcheck --features maps                # Splash
+```
+
+文件在而二进制不在时，它会说清楚，并给出构建它的那一条命令。把
+`$OCTO_L0CHECK` 或 `$OCTO_SPLASHCHECK` 指向某个二进制可跳过查找。
+`--only l0|splash|bindings` 只跑一个检查器；路径默认是当前目录。
+
+`splash` 检查器的边界是写明的而不是试出来的：只求值顶层代码（顶层没人调用的
+`fn` 会编译但不运行，`host.request` 的回调因为无人应答也从不运行），widget
+集合就是二进制构建时的那一套——请按目标宿主的 feature 构建。应用包里的基线
+文件（`splashcheck-baseline.json`）让历史应用可以无痛采用：已知发现是警告，
+新发现才是错误。
+
 ## 9. 在 OctoSense 手机上运行
 
 目前的情况：
