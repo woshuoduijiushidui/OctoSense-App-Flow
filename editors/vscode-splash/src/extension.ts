@@ -75,18 +75,21 @@ function explainMissingServer() {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  // Registered before anything else, and in both outcomes: a serverPath that
+  // moves must restart the extension host, or a stale value stays cached in the
+  // running host and the client keeps spawning the path that used to be there.
+  // That is not hypothetical — it is how a mangled setting survived a fix.
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('splashCheck.serverPath')) {
+        void vscode.commands.executeCommand('workbench.action.restartExtensionHost');
+      }
+    }),
+  );
+
   const server = resolveServer();
   if (!server) {
     explainMissingServer();
-    // A configuration change may supply what was missing; restart the client
-    // when the setting moves, so the user does not have to reload the window.
-    context.subscriptions.push(
-      vscode.workspace.onDidChangeConfiguration((event) => {
-        if (event.affectsConfiguration('splashCheck.serverPath')) {
-          void vscode.commands.executeCommand('workbench.action.restartExtensionHost');
-        }
-      }),
-    );
     return;
   }
 
