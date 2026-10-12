@@ -5,11 +5,17 @@ A thin wrapper over the two real tools, `card-host` and `hub`, which are built
 from OctoSense-App-Hub. It never decides admission itself: `octo check` prints
 exactly what `hub check` prints and exits with its status.
 
+`octo lint` is the other half: what the advisory checkers say about what you
+wrote, before a host runs it. It runs every checker that applies to the paths
+— the card's host-service contract, the L0 profile, the Splash app — and none
+of them decides admission either.
+
     tools/octo doctor
     tools/octo new <dir> --platform PLATFORM [--id ID] [--name NAME]
     tools/octo run <bundle> [--port N] [--hidden] [--system] [--detach] [--no-stamp] [--app-data DIR]
     tools/octo shot <port> <out.png>
     tools/octo check <bundle> [hub check flags ...]
+    tools/octo lint [path...] [--only WHAT]
     tools/octo publish-github <app-directory> [--replace]
     tools/octo package-help
     tools/octo wasm new <name> [--app DIR] [--sdk auto|git|path]
@@ -56,6 +62,21 @@ RESERVED_NAMES = frozenset({
     "updater", "weather", "workflow",
 })
 PLATFORMS = ("android", "ios", "macos", "windows", "linux", "openharmony", "web")
+
+# The advisory checkers `octo lint` runs. Each lives with the code it checks,
+# so a checker and the framework it reads are one revision; none of them is
+# built by App Hub, which is why the discovery below looks beside this repo
+# rather than in an App Hub checkout.
+BINDINGS_LINT = REPO / "tools" / "l0-bindings-lint.py"
+CHECKERS = (
+    # name, file extensions it applies to, env var, build hint
+    ("bindings", (), "OCTO_L0_BINDINGS_LINT",
+     "tools/l0-bindings-lint.py is in App Flow; it ships with the repository."),
+    ("l0", (".card", ".l0"), "OCTO_L0CHECK",
+     "cargo build -p octoscript-makepad --bin l0check   # in an Octoscript-Makepad checkout"),
+    ("splash", (".splash",), "OCTO_SPLASHCHECK",
+     "cargo build --release -p makepad-widgets --bin splashcheck --features maps   # in a makepad checkout"),
+)
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
@@ -562,7 +583,16 @@ def cmd_check(args, extra):
         cmd += ["--publisher-key", key]
     cmd += extra
     print("octo: " + " ".join(cmd), flush=True)
-    r = subprocess.run(cmd)
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    out = (r.stdout if isinstance(r.stdout, str) else "") + (r.stderr if isinstance(r.stderr, str) else "")
+    sys.stdout.write(out)
+    sys.stdout.flush()
+    # A fresh `tools/octo new` app is refused for the screenshot its listing
+    # names and nobody has captured yet: say how to capture it.
+    if r.returncode != 0 and "is named by the listing but is not in the bundle" in out and "screenshots/" in out:
+        print(f"octo: hint: capture the screenshots the listing names from the running app: "
+              f"`tools/octo run {bundle} --detach`, then `tools/octo shot 8141 {bundle / 'screenshots' / '01-main.png'}`. "
+              "A reviewer expects real captures of the app, not placeholders.")
     # Things the gate does not look at, but a reviewer will.
     listing_path = bundle / "listing.json"
     if listing_path.is_file():
@@ -574,6 +604,131 @@ def cmd_check(args, extra):
     return r.returncode
 
 
+# --------------------------------------------------------------------- lint
+def checker_binary(name, env_var):
+    """(path or None, where it came from) for an advisory checker.
+
+    The same conventions as `find_binary`: the environment, the PATH, then the
+    checkouts beside this repository — because a checker is built from the
+    repository it checks, not from App Hub.
+    """
+    explicit = os.environ.get(env_var)
+    if explicit:
+        p = Path(explicit).expanduser()
+        if p.is_file() and os.access(p, os.X_OK):
+            return p, f"${env_var}"
+    names = (name + ".exe", name) if sys.platform == "win32" else (name,)
+    for directory in (
+        os.environ.get("OCTOSCRIPT_MAKEPAD"),
+        os.environ.get("MAKEPAD"),
+        os.environ.get("OCTOSENSE_MAKEPAD"),
+    ):
+        if directory:
+            for target in ("release", "debug"):
+                for candidate_name in names:
+                    p = Path(directory).expanduser() / "target" / target / candidate_name
+                    if p.is_file() and os.access(p, os.X_OK):
+                        return p, f"${'OCTOSCRIPT_MAKEPAD' if 'OCTOSCRIPT' in str(directory) else 'MAKEPAD'}"
+    for parent_name in ("Octoscript-Makepad", "makepad"):
+        for target in ("release", "debug"):
+            for candidate_name in names:
+                p = REPO.parent / parent_name / "target" / target / candidate_name
+                if p.is_file() and os.access(p, os.X_OK):
+                    return p, str(p.parent.parent)
+    on_path = shutil.which(name)
+    if on_path:
+        return Path(on_path), "PATH"
+    return None, None
+
+
+def looks_like_bundle(path):
+    return any((path / name).is_file() for name in ("manifest.json", "page.card", "bindings.json"))
+
+
+def collect(paths, extensions, want_dirs):
+    """The paths a checker applies to: files of its kind, and directories that
+    hold one (or, for the bundle checkers, that look like a bundle)."""
+    out = []
+    for path in paths:
+        if path.is_file():
+            if not extensions or path.suffix in extensions:
+                out.append(path)
+        elif path.is_dir():
+            if want_dirs and looks_like_bundle(path):
+                out.append(path)
+                continue
+            for child in sorted(path.rglob("*")):
+                if any(part in (".git", "target") for part in child.parts):
+                    continue
+                if child.is_file() and (not extensions or child.suffix in extensions):
+                    out.append(child)
+    return out
+
+
+def cmd_lint(args):
+    """What the advisory checkers say about what you wrote, before a host runs it.
+
+    Three tools, because they answer three different questions: the card's
+    host-service contract as text (no build, no kit), the L0 profile, and the
+    Splash app. Each runs only where it has something to check, and none of
+    them decides admission — `octo check` does that.
+    """
+    paths = [Path(p).expanduser() for p in (args.paths or ["."])]
+    for path in paths:
+        if not path.exists():
+            die(f"{path} does not exist", 2)
+
+    only = set(args.only or [])
+    unknown = only - {name for name, _, _, _ in CHECKERS}
+    if unknown:
+        die(f"--only takes {', '.join(name for name, _, _, _ in CHECKERS)}; got {', '.join(sorted(unknown))}", 2)
+
+    status = 0
+    ran = 0
+    for name, extensions, env_var, build_hint in CHECKERS:
+        if only and name not in only:
+            continue
+        targets = collect(paths, extensions, want_dirs=(name == "bindings"))
+        if not targets:
+            if only:
+                print(f"octo: {name}: nothing to check in {', '.join(str(p) for p in paths)}")
+            continue
+
+        if name == "bindings":
+            # The contract reader ships with this repository, so the only
+            # reason it is missing is a checkout that predates it.
+            if not BINDINGS_LINT.is_file():
+                print(f"octo: {name}: {BINDINGS_LINT.name} is not in this checkout; skipped")
+                continue
+            print(f"octo: {name}: python3 {BINDINGS_LINT.name} ({len(targets)} bundle(s))", flush=True)
+            for bundle in targets:
+                r = subprocess.run([sys.executable, str(BINDINGS_LINT), str(bundle)])
+                status = max(status, r.returncode if r.returncode in (0, 1, 2) else 2)
+            ran += 1
+            continue
+
+        binary, where = checker_binary(name, env_var)
+        if binary is None:
+            # A checker whose files are there and whose binary is not is a
+            # thing the user needs to know, with the one command that fixes it.
+            print(f"octo: {name}: {len(targets)} file(s) to check, but {name} is not built")
+            print(f"octo:       build it: {build_hint}")
+            print(f"octo:       or point ${env_var} at it")
+            status = max(status, 2)
+            continue
+
+        print(f"octo: {name}: {binary} ({len(targets)} file(s), from {where})", flush=True)
+        cmd = [str(binary), *[str(t) for t in targets]]
+        print("octo: " + " ".join(cmd), flush=True)
+        r = subprocess.run(cmd)
+        status = max(status, r.returncode if r.returncode in (0, 1, 2) else 2)
+        ran += 1
+
+    if ran == 0 and status == 0 and not only:
+        # With --only the per-checker lines have already said what was and was
+        # not there; repeating it as if nothing existed would be wrong.
+        print("octo: lint: nothing to check (no .card/.l0/.splash files, and no bundle)")
+    return status
 # -------------------------------------------------------------- publish-github
 def cmd_publish_github(args):
     app = Path(args.dir).expanduser().resolve()
@@ -1332,8 +1487,55 @@ def cmd_wasm_info(args):
     return 0
 
 
+WASM_CALL_EXAMPLE = Path("crates/wasm-host/examples/wasm_call.rs")
+
+
+def octosense_repo():
+    """The OctoSense checkout: $OCTOSENSE_REPO, else a sibling of this repo."""
+    env = os.environ.get("OCTOSENSE_REPO")
+    if env:
+        return Path(env).expanduser().resolve()
+    sibling = REPO.parent / "OctoSense"
+    return sibling.resolve() if sibling.is_dir() else None
+
+
+def cmd_wasm_call(args):
+    """Call one function of a built component through OctoSense's `wasm_call`
+    example (OctoSense #455): the runtime the shell uses, outside a shell."""
+    app = Path(args.app or ".").expanduser().resolve()
+    if args.file:
+        file = Path(args.file).expanduser().resolve()
+    else:
+        fns = app / "bundle" / "fns"
+        files = sorted(fns.glob("*.wasm")) if fns.is_dir() else []
+        if not files:
+            die(f"{fns} holds no .wasm file: run `tools/octo wasm build --app {app}` first, or name one with --file")
+        if len(files) > 1:
+            die(f"{fns} holds {len(files)} .wasm files ({', '.join(f.name for f in files)}): name one with --file")
+        file = files[0]
+    if not file.is_file():
+        die(f"{file}: no such file")
+    repo = octosense_repo()
+    if repo is None:
+        die("no OctoSense checkout found: set $OCTOSENSE_REPO, or clone OctoSense-org/OctoSense beside this repository")
+    if not (repo / WASM_CALL_EXAMPLE).is_file():
+        die(f"{repo} has no {WASM_CALL_EXAMPLE}: `tools/octo wasm call` needs OctoSense main at or after OctoSense #455")
+    if not (repo / ".sources").is_dir():
+        print(f"octo: note: {repo} has no .sources/ yet; if cargo cannot read the workspace, run "
+              f"`python3 tools/setup.py` there first", file=sys.stderr)
+    function = args.function[len("wasm."):] if args.function.startswith("wasm.") else args.function
+    cmd = ["cargo", "run", "-q", "-p", "octosense-wasm-host", "--example", "wasm_call", "--", str(file), function]
+    if args.args is not None:
+        cmd.append(args.args)
+    if args.storage:
+        cmd += ["--storage", str(Path(args.storage).expanduser().resolve())]
+    print(f"octo: {' '.join(cmd)}  (in {repo}; a checkout's first run compiles the runtime)", file=sys.stderr, flush=True)
+    return subprocess.run(cmd, cwd=str(repo)).returncode
+
+
 def cmd_wasm(args, parser):
-    handlers = {"new": cmd_wasm_new, "build": cmd_wasm_build, "doctor": cmd_wasm_doctor, "info": cmd_wasm_info}
+    handlers = {"new": cmd_wasm_new, "build": cmd_wasm_build, "call": cmd_wasm_call, "doctor": cmd_wasm_doctor,
+                "info": cmd_wasm_info}
     if args.wasm_cmd not in handlers:
         parser.print_help()
         return 0
@@ -1382,6 +1584,10 @@ def main():
     c.add_argument("bundle")
     c.add_argument("--catalog", metavar="PATH", help="forward the catalog path to hub check")
     c.add_argument("--publisher-key", action="append", default=[], metavar="KEY", help="forward a legacy publisher key (id=hex) to hub check, to check an existing key-signed bundle; never needed to publish (repeatable)")
+    l = sub.add_parser("lint", help="what the advisory checkers say about what you wrote: the card host-service contract, the L0 profile, the Splash app")
+    l.add_argument("paths", nargs="*", help="app directories, bundles or files (default: this directory)")
+    l.add_argument("--only", action="append", choices=[name for name, _, _, _ in CHECKERS],
+                   help="run one checker only (repeatable); default: every checker that applies")
 
     g = sub.add_parser("publish-github", help="install the GitHub release workflow; no signing key")
     g.add_argument("dir", help="app repository directory containing bundle/manifest.json")
@@ -1403,6 +1609,15 @@ def main():
                                        "each is built from, and update the manifest")
     wb.add_argument("--app", metavar="DIR", help="the app's directory, which holds bundle/ (default: the current directory)")
     wb.add_argument("--crate", action="append", metavar="DIR", help="a crate to build (repeatable; default: every <app>/components/*/)")
+    wc = wsub.add_parser("call", help="call one function of the built component from the command line, through "
+                                      "OctoSense's wasm_call example (an OctoSense checkout at or after OctoSense #455)")
+    wc.add_argument("function", help="the function, as the script calls it: count, or wasm.count")
+    wc.add_argument("args", nargs="?", help="its arguments as JSON: an object keyed by parameter name, an array in "
+                                            "parameter order, or one value (default: no arguments)")
+    wc.add_argument("--app", metavar="DIR", help="the app's directory, which holds bundle/ (default: the current directory)")
+    wc.add_argument("--file", metavar="FILE", help="the function file (default: the one .wasm file in <app>/bundle/fns/)")
+    wc.add_argument("--storage", metavar="DIR", help="a folder the component sees as its app storage (/), for one "
+                                                     "that imports wasi:filesystem")
     wd = wsub.add_parser("doctor", help="check Rust, the wasm32-wasip2 target and a crate's dependencies, "
                                         "and name what OctoSense already provides")
     wd.add_argument("--crate", action="append", metavar="DIR", help="a crate to check (repeatable; default: every ./components/*/)")
@@ -1425,6 +1640,8 @@ def main():
     }
     if args.cmd == "check":
         sys.exit(cmd_check(args, extra))
+    if args.cmd == "lint":
+        sys.exit(cmd_lint(args))
     if args.cmd == "wasm":
         sys.exit(cmd_wasm(args, w))
     if args.cmd in handlers:
