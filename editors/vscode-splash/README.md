@@ -8,6 +8,17 @@ escapes, numbers, hex colours, keywords, widget and type names, properties,
 function calls, enum values and operators. It is not a reimplementation
 and it does not drift: the binary and the framework it checks are one revision.
 
+## What it does
+
+* **Diagnostics as you type** — the analysis runs on open, on change
+  (debounced, `splashCheck.debounceMs`) and on save. A finding carries its own
+  line and column and the VM's `Did you mean` list, and the lightbulb offers to
+  apply it.
+* **Go-to-definition and the outline** — F12 on a `let`, an `fn` or a `:=`
+  binding jumps to its declaration; the outline view lists them. Textual, over
+  the DSL's three binding forms: the VM holds the real scopes but exposes no
+  "where is this name declared" query.
+
 ## What it finds
 
 * **Evaluation errors**, at the app's own line and column: a name nothing
