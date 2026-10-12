@@ -582,6 +582,46 @@ proof is not present in the editable tag source.
 App Hub's [`hub` command reference](https://github.com/OctoSense-org/OctoSense-App-Hub/blob/main/docs/SUBMITTING.md#the-hub-command) lists
 every `hub` command, with who runs it and in which submission step.
 
+### 8a. Lint what you wrote, before a host runs it
+
+`check` is the admission gate and it is deliberately narrow: the manifest, the
+digest, the declared hosts. It says nothing about whether your **code** works.
+`lint` is the other half — the same advisory stance, one layer earlier:
+
+```sh
+tools/octo lint ~/apps/my-app/bundle
+```
+
+It runs every checker that applies to the paths and reports the worst status:
+
+| Checker | Reads | Finds |
+| --- | --- | --- |
+| `bindings` | a bundle's `page.card` and `bindings.json` as text | the card ↔ host-service contract: a name the card reads but never declares, a read that is not resolvable on the first frame, a read of a failed call outside its `when X.is_ok` guard, a service the manifest does not grant |
+| `l0` | `.card` and `.l0` files | the L0 profile: syntax, level, header, theme portability — and, with a kit beside it, whether the card lowers |
+| `splash` | `main.splash` | the app itself, evaluated in a throwaway isolate with the same VM, widget registry and host bridge a host installs: an undeclared name, a widget or property that does not exist, a type mismatch — each at its own line and column, with the VM's `Did you mean` list — plus the host services the app asks for against what the manifest declares |
+
+None of them decides admission; `check` does that. Each is built from the
+repository it checks, so a checker and the framework it reads are one
+revision:
+
+```sh
+cargo build -p octoscript-makepad --bin l0check                                          # L0
+cargo build --release -p makepad-widgets --bin splashcheck --features maps                # Splash
+```
+
+A checker whose files are present but whose binary is not says so, with the
+one command that builds it. Point `$OCTO_L0CHECK` or `$OCTO_SPLASHCHECK` at a
+binary to skip the search. `--only l0|splash|bindings` runs one checker; the
+paths default to this directory.
+
+The `splash` checker's boundaries are stated rather than discovered: only
+top-level code is evaluated (a `fn` nothing calls at the top level is compiled
+but never run, and a `host.request` callback never runs because nothing
+answers it), and the widget set is whatever the binary was built with — build
+it with the features of the host you are writing for. A baseline file
+(`splashcheck-baseline.json` in the bundle) lets a legacy app adopt it without
+a wall of red: a known finding is a warning, a new one is an error.
+
 ## 9. Run it on an OctoSense phone
 
 What exists today:
