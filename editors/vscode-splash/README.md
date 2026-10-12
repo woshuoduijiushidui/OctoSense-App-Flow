@@ -3,7 +3,9 @@
 Static semantic analysis for **Splash apps** (`.splash`), in your editor.
 
 The analysis is the OctoSense framework's own checker — `splashcheck`, from
-`makepad-widgets` — running as a Language Server. It is not a reimplementation
+`makepad-widgets` — running as a Language Server. It also contributes the `splash` language: comments, strings with their
+escapes, numbers, hex colours, keywords, widget and type names, properties,
+function calls, enum values and operators. It is not a reimplementation
 and it does not drift: the binary and the framework it checks are one revision.
 
 ## What it finds
