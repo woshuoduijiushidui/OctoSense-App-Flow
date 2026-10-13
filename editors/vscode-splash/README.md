@@ -37,14 +37,14 @@ of the host you are writing for (`--features maps` for the OctoSense shells).
 
 ## Installing the server
 
-The extension is only a client; the analysis lives in the `splash-lsp` binary,
-built from an Octoscript-Makepad checkout:
+The extension is only a client; the analysis lives in the `splash-lsp` binary.
+A fresh install needs nothing built: on first use the extension downloads the
+binary its manifest pins for your platform and starts it. The version is
+pinned in the manifest (`splashCheck.serverVersion`), so the plugin and the
+server do not drift apart.
 
-```sh
-cargo build --release -p makepad-widgets --bin splash-lsp --features maps
-```
-
-Then point the extension at it, in any of these ways:
+If you have a local build, it wins — a download never shadows a statement of
+intent. In order:
 
 1. **Setting**: `splashCheck.serverPath` — an absolute path to the binary.
 2. **Environment**: `$SPLASH_LSP`.
@@ -52,15 +52,28 @@ Then point the extension at it, in any of these ways:
 4. **Workspace layout**: a `makepad/` or `Octoscript-Makepad/` checkout beside
    the workspace, with `target/release/splash-lsp` in it — the same places
    `octo` looks for the tools it wraps.
+5. **Download**: the pinned release asset for your platform.
 
-Until one of those is true, the extension says so and offers to open the
-setting rather than failing silently.
+To build the server yourself instead:
+
+```sh
+cargo build --release -p makepad-widgets --bin splash-lsp --features maps
+```
+
+## When the server cannot be fetched
+
+A platform with no published build, or a download that fails, is one notice,
+one output-channel line with the cause and the build path above, and then the
+extension carries on in degraded mode: highlighting, and whatever else
+survives without a server. It never throws, and it never fails silently — the
+notice says which of the two happened.
 
 ## Building the extension
 
 ```sh
 npm install
 npm run compile     # or: npm run watch
+npm test            # the resolver's priority chain, in node
 npm run package     # produces splash-check-<version>.vsix
 ```
 
@@ -70,7 +83,8 @@ npm run package     # produces splash-check-<version>.vsix
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| `splashCheck.serverPath` | `""` | The binary. Empty: `$SPLASH_LSP`, then `$PATH`, then a sibling checkout. |
+| `splashCheck.serverPath` | `""` | The binary. Empty: `$SPLASH_LSP`, then `$PATH`, then a sibling checkout, then the pinned download. |
+| `splashCheck.serverVersion` | `"2.0.0"` | The `splash-lsp` version to download when no local build is found. Pinned in the manifest; override it to test a local build of the server against a released plugin. |
 | `splashCheck.debounceMs` | `300` | How long after the last keystroke a document is checked. Checking a 130 KB app takes ~200 ms, and doing it per keystroke would lag the editor. |
 
 ## The command line

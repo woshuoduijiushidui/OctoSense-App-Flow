@@ -1,107 +1,86 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { Executable, LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
-
-/** The binary an editor runs, and where it came from. */
-interface Server {
-  command: string;
-  args: string[];
-  env?: Record<string, string>;
-}
+import { resolveServer, type Server, type UnavailableReason } from './resolveServer';
+import { downloadServer } from './serverDownload';
 
 let client: LanguageClient | undefined;
 
-/**
- * Where the splash-lsp binary is.
- *
- * An editor integration is only as good as its discovery: a linter nobody can
- * start is a linter nobody uses. In order: the setting, the environment, the
- * PATH, then the Octoscript-Makepad checkouts beside the workspace — the same
- * places `octo` looks for the tools it wraps.
- */
-function resolveServer(): Server | undefined {
-  const configured = vscode.workspace.getConfiguration('splashCheck').get<string>('serverPath');
-  if (configured && configured.trim().length > 0) {
-    return { command: configured.trim(), args: [] };
-  }
-  const fromEnv = process.env.SPLASH_LSP;
-  if (fromEnv && fs.existsSync(fromEnv)) {
-    return { command: fromEnv, args: [] };
-  }
-  const exe = process.platform === 'win32' ? 'splash-lsp.exe' : 'splash-lsp';
-  const onPath = findOnPath(exe);
-  if (onPath) {
-    return { command: onPath, args: [] };
-  }
-  for (const folder of vscode.workspace.workspaceFolders ?? []) {
-    for (const candidate of [
-      path.join(folder.uri.fsPath, '..', 'makepad', 'target', 'release'),
-      path.join(folder.uri.fsPath, '..', 'Octoscript-Makepad', 'target', 'release'),
-      path.join(folder.uri.fsPath, 'makepad', 'target', 'release'),
-    ]) {
-      const binary = path.join(candidate, exe);
-      if (fs.existsSync(binary)) {
-        return { command: binary, args: [] };
-      }
-    }
-  }
-  return undefined;
-}
-
-function findOnPath(exe: string): string | undefined {
-  const paths = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean);
-  for (const dir of paths) {
-    const candidate = path.join(dir, exe);
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-  }
-  return undefined;
-}
-
-/** Tell the user, once, that the checker is not running — and what to do. */
-function explainMissingServer() {
-  void vscode.window.showWarningMessage(
-    'Splash Check: splash-lsp was not found. Build it in an Octoscript-Makepad checkout ' +
-      '(cargo build --release -p makepad-widgets --bin splash-lsp --features maps) and set ' +
-      '"splashCheck.serverPath", $SPLASH_LSP, or put it on your PATH.',
-    'Open Settings',
-  ).then((choice) => {
-    if (choice === 'Open Settings') {
-      void vscode.commands.executeCommand('workbench.action.openSettings', 'splashCheck');
-    }
-  });
-}
+/** The notices already shown this session: one per reason, never one per document. */
+const noticedReasons = new Set<string>();
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // Registered before anything else, and in both outcomes: a serverPath that
-  // moves must restart the extension host, or a stale value stays cached in the
-  // running host and the client keeps spawning the path that used to be there.
-  // That is not hypothetical — it is how a mangled setting survived a fix.
+  // moves must restart the extension host, or a stale value stays cached in
+  // the running host and the client keeps spawning the path that used to be
+  // there. That is not hypothetical — it is how a mangled setting survived a
+  // fix. The pinned version moves for the same reason.
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration('splashCheck.serverPath')) {
+      if (
+        event.affectsConfiguration('splashCheck.serverPath') ||
+        event.affectsConfiguration('splashCheck.serverVersion')
+      ) {
         void vscode.commands.executeCommand('workbench.action.restartExtensionHost');
       }
     }),
   );
 
-  const server = resolveServer();
-  if (!server) {
-    explainMissingServer();
+  const configuration = vscode.workspace.getConfiguration('splashCheck');
+  const resolution = await resolveServer({
+    setting: configuration.get<string>('serverPath'),
+    env: process.env,
+    workspaceFolders: (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath),
+    exists: (candidate) => fs.existsSync(candidate),
+    platform: process.platform,
+    arch: process.arch,
+    version: pinnedVersion(configuration, context),
+    // The download is the strategy's last source; a person who installs the
+    // plugin on a fresh VS Code gets the server this way, with nothing built
+    // locally (ADR 0003 §1).
+    download: { cacheDir: context.globalStorageUri.fsPath, fetch: downloadServer },
+  });
+
+  if (resolution.status === 'unavailable') {
+    explainUnavailable(resolution.reason);
+    // Degraded mode, not a dead plugin: the grammar still highlights, and
+    // activation neither throws nor leaves a half-registered client behind.
     return;
   }
 
+  await startClient(context, resolution.server);
+}
+
+/**
+ * The server version to fetch: the manifest's constant, unless the workspace
+ * setting overrides it — a person testing a local build of the server against
+ * a released plugin (ADR 0003 §3). Nothing floats: no "latest", no range.
+ */
+function pinnedVersion(
+  configuration: vscode.WorkspaceConfiguration,
+  context: vscode.ExtensionContext,
+): string {
+  const configured = configuration.get<string>('serverVersion');
+  if (configured && configured.trim().length > 0) {
+    return configured.trim();
+  }
+  const manifest = context.extension.packageJSON as { splashCheck?: { serverVersion?: string } };
+  return manifest.splashCheck?.serverVersion ?? '';
+}
+
+async function startClient(context: vscode.ExtensionContext, server: Server): Promise<void> {
   // The debounce is a server-side setting, passed through the environment so
   // the binary needs no configuration file.
   const debounceMs = vscode.workspace.getConfiguration('splashCheck').get<number>('debounceMs', 300);
   const run: Executable = {
     command: server.command,
     args: server.args,
-    options: { env: { ...process.env, ...(server.env ?? {}), SPLASH_LSP_DEBOUNCE_MS: String(debounceMs) } },
+    options: { env: { ...process.env, SPLASH_LSP_DEBOUNCE_MS: String(debounceMs) } },
   };
-  const serverOptions: ServerOptions = { run, debug: { command: server.command, args: server.args, options: run.options } };
+  const serverOptions: ServerOptions = {
+    run,
+    debug: { command: server.command, args: server.args, options: run.options },
+  };
 
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: 'file', language: 'splash' }],
@@ -118,8 +97,55 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   }
 }
 
-export async function deactivate(): Promise<void> {
-  if (client) {
-    await client.stop();
+/**
+ * One notice, one explanation, and a fallback — never a dead plugin (ADR
+ * 0003 §4). The notice fires once per session per reason; the output channel
+ * carries the cause and the manual build path, so the person who wants to
+ * self-serve can without a round trip through a search engine.
+ */
+function explainUnavailable(reason: UnavailableReason): void {
+  const channel = vscode.window.createOutputChannel('Splash Check');
+  channel.appendLine('Splash Check: the splash-lsp server is unavailable, so only highlighting is active.');
+  channel.appendLine(`Cause: ${explanation(reason).cause}`);
+  channel.appendLine('To build the server yourself:');
+  channel.appendLine('  cargo build --release -p makepad-widgets --bin splash-lsp --features maps');
+  channel.appendLine('Then point the extension at it: "splashCheck.serverPath", $SPLASH_LSP, or your PATH.');
+
+  if (noticedReasons.has(reason.kind)) {
+    return;
+  }
+  noticedReasons.add(reason.kind);
+  void vscode.window
+    .showWarningMessage(`${explanation(reason).notice} See the output channel.`, 'Show Output')
+    .then((choice) => {
+      if (choice === 'Show Output') {
+        channel.show();
+      }
+    });
+}
+
+/** The two sentences each reason needs: one for the notice, one for the channel. */
+function explanation(reason: UnavailableReason): { notice: string; cause: string } {
+  switch (reason.kind) {
+    case 'unsupported-platform':
+      return {
+        notice: `Splash Check: no splash-lsp build for ${reason.platform} (${reason.arch}) yet — highlighting only.`,
+        cause: `no splash-lsp release asset is published for ${reason.platform} (${reason.arch}) yet`,
+      };
+    case 'download-failed':
+      return {
+        notice: 'Splash Check: could not download the splash-lsp server — highlighting only.',
+        cause: `the download failed: ${reason.cause}`,
+      };
+    case 'no-server':
+      return {
+        notice: 'Splash Check: no splash-lsp server was found — highlighting only.',
+        cause:
+          'no splash-lsp in the setting, the environment, the PATH or a sibling checkout, and no download was configured',
+      };
+    default: {
+      const unhandled: never = reason;
+      throw new Error(`unhandled unavailable reason: ${JSON.stringify(unhandled)}`);
+    }
   }
 }
