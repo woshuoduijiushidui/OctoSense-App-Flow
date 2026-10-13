@@ -1,7 +1,7 @@
 # ADR 0002: The analysis posture: answer the host, re-run every top-level `fn`, suppress exactly one shape
 
 - **Date:** 2026-10-13
-- **Status:** Accepted (2026-10-13). Not yet implemented: answering host requests is issue #5 and the `fn` re-run is issue #6, both in [OctoSense-org/makepad](https://github.com/OctoSense-org/makepad) (`widgets/src/splashcheck.rs`, `widgets/src/splash.rs`).
+- **Status:** Accepted (2026-10-13). §1's host answering is implemented (issue #5), in [OctoSense-org/makepad](https://github.com/OctoSense-org/makepad) (`widgets/src/splash_host.rs`, `widgets/src/splash.rs`, `widgets/src/splashcheck.rs`): a validation run drains the requests its body queued, answers each once with a stub success, and reports what the callbacks then raise under `splash.fnstub`, with §2's single suppression as a note. §1's `fn` re-run is issue #6 and is not part of that change; the corpus in this repository is recorded against a build carrying the host answering alone, and the `fn` fixture's flip belongs to that ticket's re-record.
 - **Scope:** How deep the validator looks during a check, and which of the findings that depth produces it is allowed to dismiss. It covers the two blind spots the checker documents about itself, the shape of the answer stub, the single suppression rule, and the code that makes stub findings grep-able. It does not cover the discovery chain or the download (ADR 0003) or the completion data source (ADR 0001). This record lives in App Flow, where the spec and every ticket that cites it live; the code it governs lands in the makepad fork.
 - **Relates to:** [ADR 0001](0001-vm-query-api-two-functions.md), [ADR 0003](0003-download-first-server-distribution.md); App Flow #1 (the spec), #4 (golden corpus), #5, #6.
 
@@ -68,7 +68,8 @@ So the false-positive surface of a no-argument re-run is **one message shape**, 
 
 During a check, in the same isolate that evaluates the body:
 
-1. **Host requests are answered deterministically.** After the body evaluates, the requests it queued are drained and each is answered once, with a success. The answer's shape is the one the bridge already builds — `{is_ok, data, error}` (`widgets/src/splash_host.rs:186-193`) — and the stub answers `is_ok` true, so the `if r.is_ok` branch runs. The success path is the one worth checking: it is where an app's real work is, and a checker that only ever exercised the failure branch would miss most of the code.
+1. **Host requests are answered deterministically.** After the body evaluates, the requests it queued are drained and each is answered once, with a success. The answer's shape is the one the bridge already builds — `{is_ok, data, error}` (`widgets/src/splash_host.rs:186-193`) — and the stub answers `is_ok` true, so the `if r.is_ok` branch runs. The success path is the one worth checking: it is where an app's real work is, and a checker that only ever exercised the failure branch would miss most of the code. `data` is nil, which is what makes §2's rule the one shape the stub can invent: an empty object would put the same code behind `on type object`, which nothing measured and nothing suppresses.
+   The drain **repeats** while requests remain, because a callback may itself ask for something and that request's callback is code too. Each request is answered exactly once — the repetition only picks up what the callbacks queued — and it is bounded, with the bound reported rather than hidden: a run that stopped early says how many callbacks it ran and that more were left queued. A fire-and-forget request has no callback and is not counted as one that ran.
 2. **Every top-level `fn` is re-run once with no arguments**, after the body and after the answers. The result is discarded; only the errors are collected.
 
 Only top-level `fn`. A `fn` nested inside another `fn`, or inside a proto, exists only when its enclosing code runs, so reaching it means evaluating the app rather than checking it — that is a different tool, and it is out of scope for this spec. The checker already says which checks it skipped (`report.notes`), and "nested `fn` not evaluated" joins that list rather than being left as silence.
@@ -86,6 +87,8 @@ Findings that exist only because of the stub carry `splash.fnstub`, beside the e
 ### 4. The golden corpus is the regression gate
 
 Issue #4 puts twelve real apps and the `fn` blind-spot fixture under golden files. The fixture's expectation flips from "no findings" to "findings", which is the measurable delivery of this posture; every other app's diff must be empty or explained. A posture that changes what a real app reports is a change a person must see.
+
+Issue #5 added the callback fixture and recorded its golden with the finding in it: `3:32 error splash.fnstub variable nope not found in scope`. The twelve apps' goldens did not move, and the reason is worth writing down: every one of them boots behind `start_timeout(0.05, || boot())`, so a synchronous check queues no request and the stub answers none. An app that queued a request during its body's evaluation would move, and that diff would have to be explained.
 
 ## Consequences
 
