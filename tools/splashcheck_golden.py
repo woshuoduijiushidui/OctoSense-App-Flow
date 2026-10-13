@@ -50,10 +50,14 @@ the golden files in `golden/` beside this runner are that run, so a change to
 either side of the contract shows up here as a diff rather than as a surprise.
 
 The thirteenth entry is the fn blind spot: `fn broken(){ let x = nope }`, a
-fault inside a function nothing calls at the top level. The checker evaluates
-top-level code only, so its golden records no findings - and that is the
-measurement this corpus exists to make: when the checker starts evaluating
-every `fn`, this golden changes and the diff says so.
+fault inside a function nothing calls at the top level. The checker used to
+evaluate top-level code only, so its golden recorded no findings - and that was
+the measurement this corpus existed to make. It now re-runs every top-level
+`fn` once with no arguments ([ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
+§1), so the fixture's golden carries one finding at the fn's own line under
+`splash.fnstub`, and the twelve real apps carry more - all of them from the
+same re-run, all of them explained in
+[the corpus README](splashcheck_corpus/README.md).
 The fourteenth is the callback blind spot: a `host.request` whose callback
 carries a fault, called at the top level. The checker used to queue the request
 and answer nothing, so the callback never ran and its golden would have
@@ -389,7 +393,12 @@ def main(argv=None):
     if args.update:
         golden_dir.mkdir(parents=True, exist_ok=True)
         for entry in recorded:
-            (golden_dir / f"{entry.name}.txt").write_text(entry.text, encoding="utf-8")
+            # `newline="\n"`: the text is rendered with \n and the golden files are
+            # pinned `-text` in .gitattributes, so a Windows checkout must not
+            # rewrite them to \r\n — the next compare would diff every line of
+            # every app and the corpus would never be green again.
+            with (golden_dir / f"{entry.name}.txt").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write(entry.text)
             print(f"  rec  {entry.name} - {entry.findings} finding(s)")
         print(f"{TOOL}: wrote {len(recorded)} golden file(s) to {display(golden_dir)}")
         return EXIT_OK

@@ -7,6 +7,33 @@ bytes 22147
 manifest found
 declares no net
 capabilities storage, llm
-findings 1
+findings 19
   warn splash.capability 1 host.request call(s) pass a computed service name, which cannot be checked statically
-notes 0
+  59:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+767 more)
+  59:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+767 more)
+  59:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+767 more)
+  59:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+767 more)
+  59:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+767 more)
+  59:8 error splash.fnstub no getter for field status on type NotFound
+  59:8 error splash.fnstub no getter for field status on type NotFound
+  59:8 error splash.fnstub no getter for field status on type NotFound
+  59:8 error splash.fnstub no getter for field status on type NotFound
+  59:8 error splash.fnstub no getter for field status on type NotFound
+  99:5 error splash.fnstub variable ui not found in scope. Did you mean: Big(obj) or mix(fn), Tip(obj), H4(obj), min(fn) (+766 more)
+  99:8 error splash.fnstub no getter for field rows on type NotFound
+  102:23 error splash.fnstub method trim not found on nil
+  123:5 error splash.fnstub variable ui not found in scope. Did you mean: id(nil) or Big(obj), mix(fn), Tip(obj), H4(obj) (+770 more)
+  123:5 error splash.fnstub variable ui not found in scope. Did you mean: id(nil) or Big(obj), mix(fn), Tip(obj), H4(obj) (+770 more)
+  123:8 error splash.fnstub no getter for field rows on type NotFound
+  123:8 error splash.fnstub no getter for field rows on type NotFound
+  152:18 error splash.fnstub service must be a string
+notes 9
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field label on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field model on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field key on type nil
