@@ -7,6 +7,20 @@ bytes 17011
 manifest found
 declares no net
 capabilities calendar, glance
-findings 1
+findings 15
   warn splash.capability 1 host.request call(s) pass a computed service name, which cannot be checked statically
+  54:4 error splash.fnstub no getter for field status on type NotFound
+  54:21 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+737 more)
+  57:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+737 more)
+  57:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+737 more)
+  57:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+737 more)
+  57:8 error splash.fnstub no getter for field calendar on type NotFound
+  57:8 error splash.fnstub no getter for field calendar on type NotFound
+  57:8 error splash.fnstub no getter for field calendar on type NotFound
+  79:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+737 more)
+  79:8 error splash.fnstub no getter for field delete_button on type NotFound
+  115:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+736 more)
+  115:8 error splash.fnstub no getter for field edit_heading on type NotFound
+  153:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+736 more)
+  153:8 error splash.fnstub no getter for field edit_status on type NotFound
 notes 0

@@ -7,5 +7,6 @@ bytes 28
 manifest found
 declares no net
 capabilities none
-findings 0
+findings 1
+  1:22 error splash.fnstub variable nope not found in scope. Did you mean: None(obj) or Top(obj), Done(obj), pow(fn), mod(obj) (+681 more)
 notes 0

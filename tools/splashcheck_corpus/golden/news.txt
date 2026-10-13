@@ -7,5 +7,33 @@ bytes 23224
 manifest found
 declares net
 capabilities storage, net, images, web, news, glance
-findings 0
-notes 0
+findings 24
+  84:18 error splash.fnstub path must be a string
+  84:38 error splash.fnstub path must be a string
+  84:38 error splash.fnstub path must be a string
+  99:38 error splash.fnstub type mismatch for property url: expected String, got nil
+  109:32 error splash.fnstub method parse_json not found on nil
+  126:33 error splash.fnstub method parse_feed not found on nil
+  316:43 error splash.fnstub method replace not found on nil
+  324:31 error splash.fnstub index 0 out of bounds (len=0)
+  365:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+770 more)
+  365:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+770 more)
+  365:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+770 more)
+  365:8 error splash.fnstub no getter for field status on type NotFound
+  365:8 error splash.fnstub no getter for field status on type NotFound
+  365:8 error splash.fnstub no getter for field status on type NotFound
+  370:5 error splash.fnstub variable ui not found in scope. Did you mean: id(nil) or mix(fn), Tip(obj), H4(obj), min(fn) (+771 more)
+  370:8 error splash.fnstub no getter for field tabbar on type NotFound
+  377:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+771 more)
+  377:8 error splash.fnstub no getter for field list on type NotFound
+  399:5 error splash.fnstub variable ui not found in scope. Did you mean: r(nil) or mix(fn), Tip(obj), H4(obj), min(fn) (+771 more)
+  399:8 error splash.fnstub no getter for field reader_title on type NotFound
+  413:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+770 more)
+  413:8 error splash.fnstub no getter for field reader on type NotFound
+  427:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+770 more)
+  427:8 error splash.fnstub no getter for field date on type NotFound
+notes 4
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field source on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field title on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field url on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field link on type nil

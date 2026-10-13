@@ -1,0 +1,7 @@
+fn load(){
+    host.request("news.list", {}, fn(r){
+        if r.is_ok { messages = r.data.messages }
+    })
+}
+load()
+View{height: Fit width: Fill}

@@ -46,14 +46,29 @@ in `widgets/src/splashcheck.rs` defines - `files[].bytes`,
 report's `tool` and `version` - together with the exit statuses `run` in the
 same file returns, 0 nothing new, 1 a finding, 2 a usage or I/O problem. Both
 were read from that source and confirmed against a recorded run of the binary;
-the golden files in this directory are that run, so a change to either side of
-the contract shows up here as a diff rather than as a surprise.
+the golden files in `golden/` beside this runner are that run, so a change to
+either side of the contract shows up here as a diff rather than as a surprise.
 
 The thirteenth entry is the fn blind spot: `fn broken(){ let x = nope }`, a
-fault inside a function nothing calls at the top level. The checker evaluates
-top-level code only, so its golden records no findings - and that is the
-measurement this corpus exists to make: when the checker starts evaluating
-every `fn`, this golden changes and the diff says so.
+fault inside a function nothing calls at the top level. The checker used to
+evaluate top-level code only, so its golden recorded no findings - and that was
+the measurement this corpus existed to make. It now re-runs every top-level
+`fn` once with no arguments ([ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
+§1), so the fixture's golden carries one finding at the fn's own line under
+`splash.fnstub`, and the twelve real apps carry more - all of them from the
+same re-run, all of them explained in
+[the corpus README](splashcheck_corpus/README.md).
+The fourteenth is the callback blind spot: a `host.request` whose callback
+carries a fault, called at the top level. The checker used to queue the request
+and answer nothing, so the callback never ran and its golden would have
+recorded no findings either; the checker now answers each queued request with a
+stub success, so the callback runs and its fault is reported at its own line
+under `splash.fnstub`. That golden is recorded with the finding in it, which is
+the measurement of that change.
+The fifteenth is the same app reading `r.data.messages` against a stub whose
+`data` is nil: the one message shape the posture is allowed to invent, recorded
+as a note rather than a finding, so the suppression rule that pays for the depth
+is itself under a golden.
 [ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
 makes this corpus the regression gate for that change: the fixture's expectation
 flips from "no findings" to "findings", and every other app's diff must be empty
@@ -99,10 +114,12 @@ EXIT_DIFF = 1
 EXIT_SETUP = 2
 
 # The VM's "Did you mean" tail names each suggestion with its kind and an
-# allocation counter: `width(obj653)`. The counter is a heap index, so it moves
-# when anything ahead of it in the registry moves - a golden that kept it would
-# churn on every unrelated refactor and bury the change a reader came to see.
-OBJECT_ID = re.compile(r"\(obj\d+\)")
+# allocation counter: `width(obj653)`, `pow(fn280)`. The counter is a heap index,
+# so it moves when anything ahead of it in the registry moves - a golden that
+# kept it would churn on every unrelated refactor and bury the change a reader
+# came to see. Both kinds, because an object and a fn are allocated from the
+# same registry and a `fn` counter is exactly as unstable.
+OBJECT_ID = re.compile(r"\((obj|fn)\d+\)")
 
 
 class SetupError(Exception):
@@ -120,9 +137,11 @@ def corpus(root):
     """Every bundle the corpus checks, as (name, path), in a stable order."""
     entries = [("appcard", root / "OctoSense-AppCard" / "bundle")]
     entries += [(name, root / "OctoSense" / "apps" / name / "bundle") for name in SYSTEM_APPS]
-    # The blind-spot fixture ships in this repository, so it is checked wherever
-    # the checker is.
+    # The blind-spot fixtures ship in this repository, so they are checked
+    # wherever the checker is.
     entries.append(("fn-blindspot", CORPUS / "fn-blindspot"))
+    entries.append(("callback-blindspot", CORPUS / "callback-blindspot"))
+    entries.append(("callback-nildata", CORPUS / "callback-nildata"))
     return sorted(entries)
 
 
@@ -249,7 +268,7 @@ def scrub(text, bundle):
 
 def finding_message(finding):
     """A finding's message, with the VM's allocation counters taken out."""
-    return OBJECT_ID.sub("(obj)", finding.get("message") or "")
+    return OBJECT_ID.sub(r"(\1)", finding.get("message") or "")
 
 
 def finding_key(finding):
@@ -374,7 +393,12 @@ def main(argv=None):
     if args.update:
         golden_dir.mkdir(parents=True, exist_ok=True)
         for entry in recorded:
-            (golden_dir / f"{entry.name}.txt").write_text(entry.text, encoding="utf-8")
+            # `newline="\n"`: the text is rendered with \n and the golden files are
+            # pinned `-text` in .gitattributes, so a Windows checkout must not
+            # rewrite them to \r\n — the next compare would diff every line of
+            # every app and the corpus would never be green again.
+            with (golden_dir / f"{entry.name}.txt").open("w", encoding="utf-8", newline="\n") as handle:
+                handle.write(entry.text)
             print(f"  rec  {entry.name} - {entry.findings} finding(s)")
         print(f"{TOOL}: wrote {len(recorded)} golden file(s) to {display(golden_dir)}")
         return EXIT_OK

@@ -33,6 +33,11 @@ FINDING = {
     "message": "variable nope not found in scope. Did you mean: width(obj653)",
 }
 
+# The blind-spot fixtures that ship in this repository: the checker's own test
+# cases for the analysis depth, one per half of it, plus the one message shape
+# the depth is allowed to invent.
+FIXTURES = ("fn-blindspot", "callback-blindspot", "callback-nildata")
+
 
 class FakeChecker:
     """A stand-in for the binary: canned reports, one recipe per app name."""
@@ -164,6 +169,25 @@ class GoldenRunnerTests(unittest.TestCase):
         self.assertIn("width(obj)", golden)
         self.assertNotIn("obj653", golden)
 
+    def test_the_vm_fn_counters_are_not_part_of_a_golden_either(self):
+        """The tail's other kind of counter, scrubbed for the same reason.
+
+        `pow(fn280)` is a heap index like `width(obj653)`, and it moves the same
+        way. A golden that kept it would churn on an unrelated refactor - which
+        is how the first callback golden came to embed one.
+        """
+        finding = dict(FINDING, message="variable nope not found in scope. Did you mean: pow(fn280), mix(fn281)")
+        self.bundle("news")
+        with patch.object(splashcheck_golden, "run_checker", FakeChecker({"news": {"findings": [finding]}})):
+            self.assertEqual(self.run_tool(*self.argv("--update"))[0], 0)
+        moved = dict(finding, message=finding["message"].replace("fn280", "fn999"))
+        with patch.object(splashcheck_golden, "run_checker", FakeChecker({"news": {"findings": [moved]}})):
+            status, out, _ = self.run_tool(*self.argv())
+        self.assertEqual(status, 0, out)
+        golden = (self.golden / "news.txt").read_text(encoding="utf-8")
+        self.assertIn("pow(fn)", golden)
+        self.assertNotIn("fn280", golden)
+
     def test_a_workspace_without_the_checker_says_so(self):
         self.bundle("news")
         missing = self.root / "no-such-splashcheck"
@@ -228,19 +252,19 @@ class GoldenRunnerTests(unittest.TestCase):
 
 
 class CorpusTests(unittest.TestCase):
-    """What the corpus is, as committed: the twelve apps, the fixture, the goldens."""
+    """What the corpus is, as committed: the twelve apps, the two fixtures, the goldens."""
 
-    def test_the_corpus_is_the_twelve_real_apps_and_the_fixture(self):
+    def test_the_corpus_is_the_twelve_real_apps_and_the_two_fixtures(self):
         entries = splashcheck_golden.corpus(Path("/nowhere"))
         self.assertEqual([name for name, _ in entries], self.names())
-        self.assertEqual(len([name for name, _ in entries if name != "fn-blindspot"]), 12)
+        self.assertEqual(len([name for name, _ in entries if name not in FIXTURES]), 12)
         # The eleven system apps sit in the OctoSense checkout, AppCard beside it.
         paths = dict(entries)
         self.assertEqual(paths["news"], Path("/nowhere/OctoSense/apps/news/bundle"))
         self.assertEqual(paths["appcard"], Path("/nowhere/OctoSense-AppCard/bundle"))
-        # The fixture ships here, so it is checked wherever the checker is.
-        self.assertEqual(paths["fn-blindspot"], splashcheck_golden.CORPUS / "fn-blindspot")
-
+        # The fixtures ship here, so they are checked wherever the checker is.
+        for fixture in FIXTURES:
+            self.assertEqual(paths[fixture], splashcheck_golden.CORPUS / fixture)
     def names(self):
         """The roster, read from the module: one list, not one per file."""
         return [name for name, _ in splashcheck_golden.corpus(Path("/nowhere"))]
@@ -263,18 +287,77 @@ class CorpusTests(unittest.TestCase):
         manifest = json.loads((splashcheck_golden.CORPUS / "fn-blindspot" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["id"], "dev.example.fnblindspot")
 
-    def test_the_fn_blind_spot_currently_reports_nothing(self):
-        """The expectation the analysis-depth tickets flip, made executable.
+    def test_the_callback_fixture_calls_its_fn_at_the_top_level(self):
+        """The fixture's shape is what makes it a measurement.
 
-        The checker evaluates top-level code only, so a fault inside a `fn`
-        nothing calls at the top level is not reported yet. When it starts
-        evaluating every `fn`, this golden gains a finding and this test is
-        updated with it: the delivery is measured here, not asserted in prose.
+        The `load()` on its own line is the whole point: it is what queues the
+        request the checker answers. Without it the fixture would be silent for
+        the fn reason instead, and the two halves of the depth would be
+        indistinguishable.
+        """
+        source = (splashcheck_golden.CORPUS / "callback-blindspot" / "main.splash").read_text(encoding="utf-8")
+        self.assertIn("fn load(){", source)
+        self.assertIn("host.request(\"news.list\", {}, fn(r){", source)
+        self.assertIn("\nload()\n", source, "the fn is called at the top level")
+        manifest = json.loads((splashcheck_golden.CORPUS / "callback-blindspot" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["id"], "dev.example.callbackblindspot")
+        # The service it asks for is declared, so the golden is about the
+        # callback and not about a capability the manifest lacks.
+        self.assertEqual(manifest["capabilities"], ["news"])
+
+    def test_the_nildata_fixture_reads_what_a_real_app_reads(self):
+        source = (splashcheck_golden.CORPUS / "callback-nildata" / "main.splash").read_text(encoding="utf-8")
+        self.assertIn("r.data.messages", source)
+        self.assertIn("\nload()\n", source, "the fn is called at the top level")
+        manifest = json.loads((splashcheck_golden.CORPUS / "callback-nildata" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["id"], "dev.example.callbacknildata")
+        self.assertEqual(manifest["capabilities"], ["news"])
+
+    def test_the_fn_blind_spot_reports_its_fault(self):
+        """The expectation the analysis-depth ticket flipped, made executable.
+
+        The checker used to evaluate top-level code only, so a fault inside a
+        `fn` nothing calls at the top level was silent. It now re-runs every
+        top-level `fn` once with no arguments, so this golden carries one
+        finding: the fn's own line, the name's own column, and the stub's own
+        code. App Flow #6 is measured here, not asserted in prose.
         """
         golden = (splashcheck_golden.GOLDEN / "fn-blindspot.txt").read_text(encoding="utf-8")
         self.assertIn("app dev.example.fnblindspot", golden)
-        self.assertIn("findings 0", golden)
+        self.assertIn("findings 1", golden)
+        self.assertIn("  1:22 error splash.fnstub variable nope not found in scope", golden)
         self.assertIn("notes 0", golden)
+
+    def test_the_callback_blind_spot_reports_the_callbacks_fault(self):
+        """The other half of the analysis depth, already delivered.
+
+        The checker answers the requests the body queued, so a callback's body
+        runs and its fault is reported at the callback's own line, under
+        `splash.fnstub` - the code that makes a stub finding greppable and
+        demotable. Before that, this golden held `findings 0` and the fixture
+        was silent for exactly the reason the fn fixture still is.
+        """
+        golden = (splashcheck_golden.GOLDEN / "callback-blindspot.txt").read_text(encoding="utf-8")
+        self.assertIn("app dev.example.callbackblindspot", golden)
+        self.assertIn("findings 1", golden)
+        # Line 3, the callback's own: the fault is inside `if r.is_ok { ... }`.
+        self.assertIn("3:32 error splash.fnstub variable nope not found in scope", golden)
+        # And the run says it stubbed: an answer no host gave is not a secret.
+        self.assertIn("notes 1", golden)
+        self.assertIn("answered with a stub success", golden)
+
+    def test_the_stubs_one_invented_shape_is_a_note_not_a_finding(self):
+        """The suppression rule, under a golden of its own.
+
+        `r.data.messages` against a stub whose `data` is nil is the one shape
+        the posture pays for. It is the rule that keeps the depth usable, so it
+        gets a fixture: drop or widen it and this golden moves.
+        """
+        golden = (splashcheck_golden.GOLDEN / "callback-nildata.txt").read_text(encoding="utf-8")
+        self.assertIn("app dev.example.callbacknildata", golden)
+        self.assertIn("findings 0", golden)
+        self.assertIn("notes 2", golden)
+        self.assertIn("suppressed (the stub answer's data is nil): no getter for field messages on type nil", golden)
 
 
 class RealCorpusTests(unittest.TestCase):
@@ -295,7 +378,7 @@ class RealCorpusTests(unittest.TestCase):
             self.assertIn("splashcheck_golden:", err.getvalue())
             return
         self.assertEqual(status, 0, out.getvalue())
-        self.assertIn("13 ok, 0 changed", out.getvalue())
+        self.assertIn("15 ok, 0 changed", out.getvalue())
 
 
 if __name__ == "__main__":
