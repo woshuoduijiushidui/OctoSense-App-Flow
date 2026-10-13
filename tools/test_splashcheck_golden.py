@@ -263,17 +263,19 @@ class CorpusTests(unittest.TestCase):
         manifest = json.loads((splashcheck_golden.CORPUS / "fn-blindspot" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["id"], "dev.example.fnblindspot")
 
-    def test_the_fn_blind_spot_currently_reports_nothing(self):
-        """The expectation the analysis-depth tickets flip, made executable.
+    def test_the_fn_blind_spot_reports_its_fault(self):
+        """The expectation the analysis-depth ticket flipped, made executable.
 
-        The checker evaluates top-level code only, so a fault inside a `fn`
-        nothing calls at the top level is not reported yet. When it starts
-        evaluating every `fn`, this golden gains a finding and this test is
-        updated with it: the delivery is measured here, not asserted in prose.
+        The checker used to evaluate top-level code only, so a fault inside a
+        `fn` nothing calls at the top level was silent. It now re-runs every
+        top-level `fn` once with no arguments, so this golden carries one
+        finding: the fn's own line, the name's own column, and the stub's own
+        code. App Flow #6 is measured here, not asserted in prose.
         """
         golden = (splashcheck_golden.GOLDEN / "fn-blindspot.txt").read_text(encoding="utf-8")
         self.assertIn("app dev.example.fnblindspot", golden)
-        self.assertIn("findings 0", golden)
+        self.assertIn("findings 1", golden)
+        self.assertIn("  1:22 error splash.fnstub variable nope not found in scope", golden)
         self.assertIn("notes 0", golden)
 
 

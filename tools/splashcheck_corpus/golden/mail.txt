@@ -7,6 +7,26 @@ bytes 15573
 manifest found
 declares no net
 capabilities storage, mail, glance
-findings 1
+findings 17
+  52:4 error splash.fnstub no getter for field status on type NotFound
+  52:18 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+736 more)
+  54:5 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+736 more)
+  54:5 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+736 more)
+  54:5 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+736 more)
+  54:8 error splash.fnstub no getter for field welcome on type NotFound
+  54:8 error splash.fnstub no getter for field welcome on type NotFound
+  54:8 error splash.fnstub no getter for field welcome on type NotFound
+  75:5 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+735 more)
+  75:8 error splash.fnstub no getter for field welcome_note on type NotFound
+  136:5 error splash.fnstub variable ui not found in scope. Did you mean: to(nil) or kb(fn5877), mix(fn286), Tip(obj), H4(obj) (+738 more)
+  136:8 error splash.fnstub no getter for field c_to on type NotFound
+  153:5 error splash.fnstub variable ui not found in scope. Did you mean: kb(fn5877) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+736 more)
+  153:8 error splash.fnstub no getter for field c_note on type NotFound
+  188:5 error splash.fnstub variable ui not found in scope. Did you mean: f(nil) or kb(fn5877), mix(fn286), Tip(obj), H4(obj) (+736 more)
+  188:8 error splash.fnstub no getter for field title on type NotFound
   268:28 error splash.eval property visible not defined on type. Did you mean: distribute(nil) or abs_pos(nil), width(obj), height(obj), aspect(nil) (+55 more)
-notes 0
+notes 4
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil

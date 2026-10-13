@@ -7,6 +7,72 @@ bytes 50962
 manifest found
 declares no net
 capabilities storage, deck
-findings 1
+findings 50
   warn splash.capability 1 host.request call(s) pass a computed service name, which cannot be checked statically
-notes 0
+  115:25 error splash.fnstub method split not found on nil
+  120:30 error splash.fnstub method replace not found on nil
+  126:28 error splash.fnstub method split not found on nil
+  205:41 error splash.fnstub method search not found on nil
+  207:32 error splash.fnstub method search not found on nil
+  243:57 error splash.fnstub path must be a string
+  257:23 error splash.fnstub method len not found on nil
+  334:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  334:8 error splash.fnstub no getter for field decks_pane on type NotFound
+  402:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  402:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  402:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  402:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  402:8 error splash.fnstub no getter for field decks_bar on type NotFound
+  402:8 error splash.fnstub no getter for field decks_bar on type NotFound
+  402:8 error splash.fnstub no getter for field decks_bar on type NotFound
+  402:8 error splash.fnstub no getter for field decks_bar on type NotFound
+  424:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  424:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  424:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  424:8 error splash.fnstub no getter for field slides_view on type NotFound
+  424:8 error splash.fnstub no getter for field slides_view on type NotFound
+  424:8 error splash.fnstub no getter for field slides_view on type NotFound
+  433:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  433:8 error splash.fnstub no getter for field outline_status on type NotFound
+  440:9 error splash.fnstub cannot assign field edited on nil (not an object)
+  447:26 error splash.fnstub array index must be a finite nonnegative integer
+  585:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  585:8 error splash.fnstub no getter for field make_card on type NotFound
+  618:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  618:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  618:8 error splash.fnstub no getter for field delete_btn on type NotFound
+  618:8 error splash.fnstub no getter for field delete_btn on type NotFound
+  641:9 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  641:12 error splash.fnstub no getter for field delete_btn on type NotFound
+  665:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  665:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  665:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+856 more)
+  665:8 error splash.fnstub no getter for field slide_count on type NotFound
+  665:8 error splash.fnstub no getter for field slide_count on type NotFound
+  665:8 error splash.fnstub no getter for field slide_count on type NotFound
+  694:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+855 more)
+  694:8 error splash.fnstub no getter for field export_name on type NotFound
+  703:5 error splash.fnstub variable ui not found in scope. Did you mean: id(nil) or cur(nil), go(fn5914), mix(fn286), Tip(obj) (+856 more)
+  703:8 error splash.fnstub no getter for field export_btn on type NotFound
+  710:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(nil) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+857 more)
+  710:5 error splash.fnstub variable ui not found in scope. Did you mean: cur(obj) or go(fn5914), mix(fn286), Tip(obj), H4(obj) (+857 more)
+  710:8 error splash.fnstub no getter for field export_line on type NotFound
+  710:8 error splash.fnstub no getter for field export_line on type NotFound
+notes 17
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field thumbs on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field count on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field built on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field thumbs on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field slides on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field thumbs on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field built on type nil

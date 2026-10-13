@@ -7,5 +7,35 @@ bytes 10378
 manifest found
 declares no net
 capabilities storage, camera, microphone, library, glance
-findings 0
-notes 0
+findings 29
+  19:18 error splash.fnstub path must be a string
+  39:27 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  39:27 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  39:30 error splash.fnstub no getter for field thumb_box on type NotFound
+  39:30 error splash.fnstub no getter for field thumb_box on type NotFound
+  47:16 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  47:19 error splash.fnstub no getter for field cam on type NotFound
+  57:26 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  57:29 error splash.fnstub no getter for field cam on type NotFound
+  77:9 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  77:12 error splash.fnstub no getter for field cam on type NotFound
+  86:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  86:8 error splash.fnstub no getter for field cam on type NotFound
+  92:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  92:8 error splash.fnstub no getter for field rec_box on type NotFound
+  98:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  98:8 error splash.fnstub no getter for field rec on type NotFound
+  103:23 error splash.fnstub variable ui not found in scope. Did you mean: m(nil) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+717 more)
+  103:26 error splash.fnstub no getter for field cam on type NotFound
+  109:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  109:8 error splash.fnstub no getter for field cam on type NotFound
+  112:16 error splash.fnstub variable ui not found in scope. Did you mean: z(nil) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+717 more)
+  112:19 error splash.fnstub no getter for field cam on type NotFound
+  124:20 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  124:23 error splash.fnstub no getter for field viewer on type NotFound
+  130:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  130:8 error splash.fnstub no getter for field toast on type NotFound
+  135:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+716 more)
+  135:8 error splash.fnstub no getter for field toast on type NotFound
+notes 1
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field is_ok on type nil

@@ -67,11 +67,78 @@ Two reductions, both deliberate, both in the code with their reasons:
 ## The fn blind spot
 
 `fn-blindspot/main.splash` is one line: `fn broken(){ let x = nope }` - a fault
-inside a function nothing calls at the top level. The checker evaluates
-top-level code only, so its golden records no findings. That is the measurement
-this corpus exists to make: when the checker starts evaluating every `fn`, this
-golden gains a finding and the diff says so, rather than the change arriving as
-a sentence in a changelog.
+inside a function nothing calls at the top level. The checker used to evaluate
+top-level code only, so its golden recorded no findings. That was the
+measurement this corpus existed to make.
+
+It now records one, because the checker re-runs every top-level `fn` once with
+no arguments after the body ([ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
+§1):
+
+```text
+findings 1
+  1:22 error splash.fnstub variable nope not found in scope. Did you mean: ...
+```
+
+The fn's own line, the name's own column, and `splash.fnstub` - the stub's own
+code, beside `splash.eval` for what the body itself raised. Grep it, baseline
+it, or demote the whole class in one move.
+
+## What the fn re-run added to the twelve apps
+
+The same re-run reaches the real apps' fns, so their goldens grew. Every new
+finding is `splash.fnstub`, and every one of them is a fault the re-run itself
+reached - either a real fault inside a `fn`, or a fault the no-argument call
+invented. The shapes, with what each one is:
+
+| Shape | Count | What it is |
+| --- | --- | --- |
+| `variable ui not found in scope` | 177 | The checker's own gap. A real host injects the `ui` handle into the isolate after the body builds its view; a dry run has no widget tree to point it at. Not the app's fault. |
+| `no getter for field X on type NotFound` | 177 | The cascade of the line above: `ui` came back `NotFound`, so `ui.docs` has no getter. |
+| `method X not found on nil` | 60 | A `nil` parameter reaching a native method (`"".replace(nil, …)`). The measured cost of passing no arguments. |
+| `path must be a string` | 13 | A `nil` parameter reaching a native call that checks its argument's type. Same cost. |
+| `variable sys not found in scope` | 9 | The framework's own `sys`/`agent` vocabulary, which every host installs into its isolates and a checker does not. Also the checker's gap, not the app's. |
+| `method X not found on error` | 9 | The cascade of a call whose target came back an error (`sys.gps(...)`). |
+| `array index …`, `type mismatch …`, `cannot assign …` | 14 | More `nil` parameters. |
+
+One shape is **not** in that table because it is not a finding at all:
+`no getter for field X on type nil`, produced while running a stub, is a note
+(`suppressed (a no-argument fn re-run leaves every parameter nil): …`). That is
+the single suppression rule ADR 0002 §2 measured, and it is the only one.
+
+So the corpus says, in numbers, what the ADR could not say from one-file
+fixtures: **the false-positive surface of a no-argument re-run on real apps is
+much wider than one shape**, and its largest part is the `ui` global a dry run
+cannot provide. The rule is not widened here - an invented rule suppresses
+shapes nobody has measured, and `variable ui not found in scope` is the same
+shape as the fixture's own `variable nope not found in scope`, so a rule wide
+enough to hide the first would hide the second. The follow-up is to make the
+dry run faithful instead: install the body's root view somewhere a `ui` handle
+can point at, and install the vocabulary a host installs. Until then the
+goldens are the record of exactly what the posture costs, which is what a
+baseline is for.
+
+Per app, so a reader can see the size of it without opening thirteen files:
+
+| App | findings before | after | of which `splash.fnstub` | notes |
+| --- | --- | --- | --- | --- |
+| `ai-providers` | 1 | 19 | 18 | 9 |
+| `appcard` | 0 | 84 | 84 | 5 |
+| `calendar` | 1 | 15 | 14 | 0 |
+| `camera` | 0 | 29 | 29 | 1 |
+| `fn-blindspot` | 0 | 1 | 1 | 0 |
+| `mail` | 1 | 17 | 16 | 4 |
+| `maps` | 0 | 80 | 80 | 4 |
+| `news` | 0 | 24 | 24 | 4 |
+| `pdftools` | 1 | 58 | 57 | 15 |
+| `photos` | 0 | 29 | 29 | 3 |
+| `quickdeck` | 1 | 50 | 49 | 17 |
+| `writer` | 1 | 47 | 46 | 9 |
+| `youtube` | 0 | 13 | 13 | 2 |
+
+The `notes` column is the suppressed `nil` field reads plus, where the checker
+answered a queued request, the stub's own count. Nothing else moved: every
+app's digest is unchanged, so these are the same sources saying more.
 
 ## Re-recording
 

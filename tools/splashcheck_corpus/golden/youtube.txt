@@ -7,5 +7,20 @@ bytes 13168
 manifest found
 declares net
 capabilities storage, net, glance
-findings 0
-notes 0
+findings 13
+  59:18 error splash.fnstub path must be a string
+  86:13 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), show(fn5872) (+731 more)
+  86:23 error splash.fnstub method video not found on error
+  127:5 error splash.fnstub variable ui not found in scope. Did you mean: q("lofi hip hop...") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+731 more)
+  127:8 error splash.fnstub no getter for field status on type NotFound
+  148:5 error splash.fnstub variable ui not found in scope. Did you mean: q("lofi hip hop...") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+732 more)
+  148:8 error splash.fnstub no getter for field main on type NotFound
+  168:5 error splash.fnstub variable ui not found in scope. Did you mean: q("lofi hip hop...") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+731 more)
+  168:8 error splash.fnstub no getter for field reader on type NotFound
+  181:5 error splash.fnstub variable ui not found in scope. Did you mean: q("lofi hip hop...") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+731 more)
+  181:8 error splash.fnstub no getter for field list on type NotFound
+  186:5 error splash.fnstub variable ui not found in scope. Did you mean: q("lofi hip hop...") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+731 more)
+  186:8 error splash.fnstub no getter for field search on type NotFound
+notes 2
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field id on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field channel on type nil

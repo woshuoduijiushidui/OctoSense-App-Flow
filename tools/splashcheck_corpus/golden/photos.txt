@@ -7,5 +7,37 @@ bytes 60514
 manifest found
 declares no net
 capabilities storage, glance, model
-findings 0
-notes 0
+findings 29
+  152:18 error splash.fnstub path must be a string
+  202:36 error splash.fnstub method replace not found on nil
+  374:78 error splash.fnstub array index must be a finite nonnegative integer
+  417:43 error splash.fnstub method replace not found on nil
+  454:28 error splash.fnstub method split not found on nil
+  458:28 error splash.fnstub method split not found on nil
+  501:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  501:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  501:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  501:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  501:8 error splash.fnstub no getter for field title on type NotFound
+  501:8 error splash.fnstub no getter for field title on type NotFound
+  501:8 error splash.fnstub no getter for field title on type NotFound
+  501:8 error splash.fnstub no getter for field title on type NotFound
+  518:16 error splash.fnstub method len not found on nil
+  538:46 error splash.fnstub array index 0 out of bounds (len=0)
+  547:38 error splash.fnstub array index 0 out of bounds (len=0)
+  572:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  572:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  572:8 error splash.fnstub no getter for field playback on type NotFound
+  572:8 error splash.fnstub no getter for field playback on type NotFound
+  580:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  580:8 error splash.fnstub no getter for field album_name on type NotFound
+  594:5 error splash.fnstub variable ui not found in scope. Did you mean: id(nil) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+814 more)
+  594:8 error splash.fnstub no getter for field subtitle on type NotFound
+  598:22 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+813 more)
+  598:25 error splash.fnstub no getter for field album_name on type NotFound
+  657:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+814 more)
+  657:8 error splash.fnstub no getter for field subtitle on type NotFound
+notes 3
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field source on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field file on type nil
+  suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field photos on type nil
