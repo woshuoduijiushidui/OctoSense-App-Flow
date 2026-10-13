@@ -26,67 +26,67 @@ findings 80
   362:55 error splash.fnstub method url_encode not found on nil
   424:29 error splash.fnstub method parse_json not found on nil
   424:29 error splash.fnstub method parse_json not found on nil
-  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
-  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
-  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
+  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
+  500:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   500:16 error splash.fnstub method gps not found on error
   500:16 error splash.fnstub method gps not found on error
   500:16 error splash.fnstub method gps not found on error
-  548:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
-  548:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
+  548:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
+  548:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
   548:8 error splash.fnstub no getter for field results on type NotFound
   548:8 error splash.fnstub no getter for field results on type NotFound
-  665:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  665:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   665:8 error splash.fnstub no getter for field details on type NotFound
-  669:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  669:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   669:16 error splash.fnstub method gps not found on error
   676:20 error splash.fnstub method set_text not found on nil
-  680:31 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  680:31 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   680:34 error splash.fnstub no getter for field pdist on type NotFound
-  682:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  682:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   682:8 error splash.fnstub no getter for field pname on type NotFound
-  690:49 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
-  690:49 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  690:49 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
+  690:49 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   690:52 error splash.fnstub no getter for field save on type NotFound
   690:52 error splash.fnstub no getter for field save on type NotFound
-  709:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  709:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   709:8 error splash.fnstub no getter for field browse_map on type NotFound
-  713:5 error splash.fnstub variable ui not found in scope. Did you mean: url(nil) or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
+  713:5 error splash.fnstub variable ui not found in scope. Did you mean: url(nil) or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
   713:8 error splash.fnstub no getter for field site_fail on type NotFound
-  719:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  719:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   719:8 error splash.fnstub no getter for field site on type NotFound
-  723:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
+  723:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
   723:8 error splash.fnstub no getter for field location_status on type NotFound
-  727:19 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  727:19 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   727:40 error splash.fnstub method request_location not found on error
-  810:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  810:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   810:16 error splash.fnstub method gps not found on error
-  829:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  829:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   829:16 error splash.fnstub method gps not found on error
-  861:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
-  861:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
+  861:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
+  861:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
   861:8 error splash.fnstub no getter for field search on type NotFound
   861:8 error splash.fnstub no getter for field search on type NotFound
   866:18 error splash.fnstub array remove index 0 out of bounds (len=0)
-  872:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+834 more)
+  872:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+834 more)
   872:8 error splash.fnstub no getter for field drive_3d on type NotFound
-  879:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  879:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   879:8 error splash.fnstub no getter for field drive_map_2d on type NotFound
-  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
-  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
-  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
-  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("search") or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
-  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s(nil) or q(""), mix(fn286), Tip(obj), H4(obj) (+834 more)
+  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
+  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
+  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("place") or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
+  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s("search") or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
+  887:5 error splash.fnstub variable ui not found in scope. Did you mean: s(nil) or q(""), mix(fn), Tip(obj), H4(obj) (+834 more)
   887:8 error splash.fnstub no getter for field search_panel on type NotFound
   887:8 error splash.fnstub no getter for field search_panel on type NotFound
   887:8 error splash.fnstub no getter for field search_panel on type NotFound
   887:8 error splash.fnstub no getter for field search_panel on type NotFound
   887:8 error splash.fnstub no getter for field search_panel on type NotFound
-  929:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
-  929:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn286), Tip(obj), H4(obj), min(fn279) (+833 more)
+  929:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
+  929:5 error splash.fnstub variable ui not found in scope. Did you mean: q("") or mix(fn), Tip(obj), H4(obj), min(fn) (+833 more)
   929:8 error splash.fnstub no getter for field browse_map on type NotFound
   929:8 error splash.fnstub no getter for field browse_map on type NotFound
-  980:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn235) or cos(fn244), fs(obj), sin(fn260), vias(fn5944) (+833 more)
+  980:8 error splash.fnstub variable sys not found in scope. Did you mean: abs(fn) or cos(fn), fs(obj), sin(fn), vias(fn) (+833 more)
   980:16 error splash.fnstub method gps not found on error
 notes 4
   suppressed (a no-argument fn re-run leaves every parameter nil): no getter for field lat on type nil

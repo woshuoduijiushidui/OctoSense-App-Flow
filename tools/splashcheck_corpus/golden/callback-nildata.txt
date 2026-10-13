@@ -1,0 +1,13 @@
+# splashcheck_golden golden corpus
+# checker: splashcheck 2.0.0
+app dev.example.callbacknildata
+digest fdd06005ed49a5e50ee9451252b1301bf481a321b17381273f60c8f09a84f682
+file main.splash
+bytes 148
+manifest found
+declares no net
+capabilities news
+findings 0
+notes 2
+  suppressed (the stub answer's data is nil): no getter for field messages on type nil
+  1 host request(s) answered with a stub success, so their callbacks ran against data: nil

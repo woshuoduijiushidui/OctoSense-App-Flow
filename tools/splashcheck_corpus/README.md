@@ -42,11 +42,14 @@ maps app reports a `MapView` its host does have.
 | --- | --- |
 | `golden/<app>.txt` | One app's report: app id, a digest of the sources the checker read, and every finding with its line, column, code and message. |
 | `fn-blindspot/` | The fn blind-spot fixture, shipped here so it is checked wherever the checker is. |
+| `callback-blindspot/` | The callback blind-spot fixture, likewise. |
+| `callback-nildata/` | The same, for the one message shape the stub is allowed to invent. |
 
 The twelve apps are the OctoSense shell's eleven system apps (`news`, `photos`,
 `maps`, `camera`, `mail`, `calendar`, `ai-providers`, `youtube`, `quickdeck`,
 `pdftools`, `writer`) plus the AppCard assistant. `wasmlab` also ships a bundle
-but is a lab rather than a system app, so it is not in the corpus.
+but is a lab rather than a system app, so it is not in the corpus. Fifteen
+entries in all: the twelve apps and the two fixtures.
 
 The digest covers the `.splash` files and the manifest and nothing else, because
 those are the checker's whole input: an icon, a `tools.json` or a screenshot
@@ -60,9 +63,11 @@ Two reductions, both deliberate, both in the code with their reasons:
 - **Findings are sorted**, not listed in report order, so a reordering is not a
   diff.
 - **The VM's allocation counters are scrubbed** (`width(obj653)` becomes
-  `width(obj)`). They are heap indices: they move when anything ahead of them in
-  the registry moves, and a golden that kept them would churn on every unrelated
-  refactor and bury the change a reader came to see.
+  `width(obj)`, `pow(fn280)` becomes `pow(fn)`). They are heap indices: they
+  move when anything ahead of them in the registry moves, and a golden that kept
+  them would churn on every unrelated refactor and bury the change a reader came
+  to see. Both kinds, because an object and a fn are allocated from the same
+  registry and a `fn` counter is exactly as unstable.
 
 ## The fn blind spot
 
@@ -118,7 +123,7 @@ can point at, and install the vocabulary a host installs. Until then the
 goldens are the record of exactly what the posture costs, which is what a
 baseline is for.
 
-Per app, so a reader can see the size of it without opening thirteen files:
+Per app, so a reader can see the size of it without opening every file:
 
 | App | findings before | after | of which `splash.fnstub` | notes |
 | --- | --- | --- | --- | --- |
@@ -140,16 +145,109 @@ The `notes` column is the suppressed `nil` field reads plus, where the checker
 answered a queued request, the stub's own count. Nothing else moved: every
 app's digest is unchanged, so these are the same sources saying more.
 
+## The callback blind spot
+
+`callback-blindspot/main.splash` is the other hole
+[ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
+measured: a `host.request` whose callback carries a fault, in a `fn` the body
+calls at the top level. A validation run has no host, so the request used to
+queue and nothing answered it - the callback never ran, and its golden recorded
+no findings. The checker now drains what the body queued and answers each
+request once with a stub success, so the callback runs, and the golden carries
+its fault at the callback's own line under `splash.fnstub`:
+
+```text
+findings 1
+  3:32 error splash.fnstub variable nope not found in scope. ...
+notes 1
+  1 host request(s) answered with a stub success, so their callbacks ran against data: nil
+```
+
+The note is the posture being honest about itself: a stub answer is not the
+host's answer, and the code that ran against it ran against `data: nil`.
+
+One fault per callback, not one per line: the VM stops a callback at its first
+error, so a second fault further down the same body is not reached. The fixture
+carries one on purpose.
+
+`callback-nildata/main.splash` is the same app reading what a real app reads -
+`r.data.messages` - against a stub whose `data` is nil. That read is the ONE
+message shape
+[ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md) §2
+pays for, and its golden records it as a note rather than a finding:
+
+```text
+findings 0
+notes 2
+  suppressed (the stub answer's data is nil): no getter for field messages on type nil
+  1 host request(s) answered with a stub success, so their callbacks ran against data: nil
+```
+
+This fixture is the gate on the suppression rule itself. It is the one rule that
+pays for the depth, so dropping it - or widening it to `on type object`, which
+nothing has measured - moves this golden, and the diff says so.
+
+What the stub does NOT reach is the same boundary as the fn blind spot. Drop the
+top-level `load()` from either fixture and the request is never queued, nothing
+is answered, and the golden would record no findings again - a `fn` nothing calls
+still is not evaluated. The two fixtures measure the two halves of the analysis
+depth, and they flip independently.
+
+Why the twelve apps did not move when the answering landed: every one of them
+boots behind `start_timeout(0.05, || boot())`, so a synchronous check queues no
+request at all and the stub answers none. Their goldens were byte-identical,
+which is the claim this corpus made about them then. They moved later, when the
+fn re-run landed - measured shape by shape under [What the fn re-run added to
+the twelve apps](#what-the-fn-re-run-added-to-the-twelve-apps) - and the two
+callback goldens above did not move with them, because the requests a re-run
+`fn` queues arrive after the drain has already run.
+
 ## Re-recording
 
 `--update` writes what the checker says now, so it is also how an intended
 change is accepted. [ADR 0002](../../docs/adr/0002-analysis-posture-and-one-suppression-rule.md)
-§4 makes this corpus the regression gate for the analysis depth: the fixture's
-expectation flips from "no findings" to "findings", and every other app's diff
-must be empty or explained. So a re-record is not a silent refresh - name what
-moved and why, in the commit and in the pull request, the way
+§4 makes this corpus the regression gate for the analysis depth: the **fn**
+fixture's expectation flips from "no findings" to "findings", and every other
+app's diff must be empty or explained. So a re-record is not a silent refresh -
+name what moved and why, in the commit and in the pull request, the way
 [ADR 0001](../../docs/adr/0001-vm-query-api-two-functions.md) §4 asks of the
 corpus it governs: a green local run nobody wrote down is not a promise.
+
+### The run that recorded the two callback goldens
+
+```sh
+python3 tools/splashcheck_golden.py --corpus-root <workspace> \
+    --checker <workspace>/splash-probe/target/debug/splashcheck \
+    --only callback-blindspot --only callback-nildata --update
+```
+
+```text
+  rec  callback-blindspot - 1 finding(s)
+  rec  callback-nildata - 0 finding(s)
+splashcheck_golden: wrote 2 golden file(s) to tools/splashcheck_corpus/golden
+```
+
+and the comparison that says the rest of the corpus is untouched by it, over the
+same workspace:
+
+```text
+$ python3 tools/splashcheck_golden.py --corpus-root <workspace>
+  ...
+splashcheck_golden: 15 ok, 0 changed
+```
+
+Both were run against a build carrying the host answering and nothing else. The
+`fn` fixture is deliberately still `findings 0` here: its re-run is issue #6, and
+that ticket's re-record is where it flips. If a run shows the twelve apps or the
+fn fixture moving, look there first - a shared `makepad` checkout can carry more
+than one ticket's change, and the goldens name the build they were recorded
+against rather than pretending to be absolute.
+
+The run that recorded `callback-blindspot.txt`: `splashcheck` built from the
+OctoSense fork of Makepad with `--features maps`, over the workspace this
+README names. One golden was added (`callback-blindspot`); the twelve apps and
+the fn fixture were compared and are unchanged. That is the whole diff, and it
+is written here because no CI runs it.
 
 ## Boundary
 

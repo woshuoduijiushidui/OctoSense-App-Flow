@@ -20,31 +20,31 @@ findings 58
   168:14 error splash.fnstub method len not found on nil
   195:43 error splash.fnstub method replace not found on nil
   199:19 error splash.fnstub path must be a string
-  494:5 error splash.fnstub variable ui not found in scope. Did you mean: d(nil) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+903 more)
+  494:5 error splash.fnstub variable ui not found in scope. Did you mean: d(nil) or mix(fn), Tip(obj), H4(obj), min(fn) (+903 more)
   494:8 error splash.fnstub no getter for field find on type NotFound
-  769:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
-  769:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
+  769:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
+  769:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
   769:8 error splash.fnstub no getter for field name_note on type NotFound
   769:8 error splash.fnstub no getter for field name_note on type NotFound
   888:12 error splash.fnstub cannot index 0 on nil (not an object/array/pod)
   923:22 error splash.fnstub method len not found on nil
-  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(1) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+904 more)
-  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(2) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+904 more)
-  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(3) or mix(fn286), Tip(obj), H4(obj), min(fn279) (+904 more)
+  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(1) or mix(fn), Tip(obj), H4(obj), min(fn) (+904 more)
+  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(2) or mix(fn), Tip(obj), H4(obj), min(fn) (+904 more)
+  944:5 error splash.fnstub variable ui not found in scope. Did you mean: n(3) or mix(fn), Tip(obj), H4(obj), min(fn) (+904 more)
   944:8 error splash.fnstub no getter for field banner_text on type NotFound
   944:8 error splash.fnstub no getter for field banner_text on type NotFound
   944:8 error splash.fnstub no getter for field banner_text on type NotFound
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
-  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
+  966:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+903 more)
   966:8 error splash.fnstub no getter for field top on type NotFound
   966:8 error splash.fnstub no getter for field top on type NotFound
   966:8 error splash.fnstub no getter for field top on type NotFound
@@ -56,12 +56,12 @@ findings 58
   966:8 error splash.fnstub no getter for field top on type NotFound
   966:8 error splash.fnstub no getter for field top on type NotFound
   966:8 error splash.fnstub no getter for field top on type NotFound
-  981:43 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
+  981:43 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
   981:46 error splash.fnstub no getter for field pages_pane on type NotFound
-  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
-  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
-  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
-  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn286) or Tip(obj), H4(obj), min(fn279), u32(obj) (+902 more)
+  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
+  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
+  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
+  990:5 error splash.fnstub variable ui not found in scope. Did you mean: mix(fn) or Tip(obj), H4(obj), min(fn), u32(obj) (+902 more)
   990:8 error splash.fnstub no getter for field top on type NotFound
   990:8 error splash.fnstub no getter for field top on type NotFound
   990:8 error splash.fnstub no getter for field top on type NotFound
