@@ -37,7 +37,10 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          # The build toolchain's floor: the packaging dependencies declare
+          # node >= 22. The extension itself still runs on VS Code 1.85's
+          # Node 18 — this is the toolchain, not the runtime.
+          node-version: '22'
       - name: The resolver's priority chain, the download, and the pin
         working-directory: editors/vscode-splash
         run: |

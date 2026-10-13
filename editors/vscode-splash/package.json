@@ -64,7 +64,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "tsc -p tsconfig.test.json && node --test \"out-test/test/**/*.test.js\"",
+    "test": "tsc -p tsconfig.test.json && node --test out-test/test/resolveServer.test.js out-test/test/serverDownload.test.js out-test/test/manifest.test.js",
     "package": "vsce package"
   },
   "dependencies": {
