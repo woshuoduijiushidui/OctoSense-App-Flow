@@ -1,0 +1,55 @@
+{
+  "name": "splash-check",
+  "displayName": "Splash Check",
+  "description": "Static semantic analysis for Splash apps (.splash) \u2014 the OctoSense framework's own checker, in your editor.",
+  "version": "0.1.0",
+  "publisher": "OctoSense",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:splash"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "splash",
+        "extensions": [
+          ".splash"
+        ],
+        "aliases": [
+          "Splash",
+          "splash"
+        ]
+      }
+    ],
+    "configuration": "./language-configuration.json",
+    "grammars": [
+      {
+        "language": "splash",
+        "scopeName": "source.splash",
+        "path": "./syntaxes/splash.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.6.0"
+  }
+}
