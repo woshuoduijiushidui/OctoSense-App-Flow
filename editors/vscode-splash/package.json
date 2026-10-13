@@ -1,0 +1,79 @@
+{
+  "name": "splash-check",
+  "displayName": "Splash Check",
+  "description": "Static semantic analysis for Splash apps (.splash) \u2014 the OctoSense framework's own checker, in your editor.",
+  "version": "0.1.0",
+  "publisher": "OctoSense",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "splashCheck": {
+    "serverRevision": "0bbd43a7bb53ca997ad0f9bd3e8abca8a797bcc0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:splash"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "splash",
+        "extensions": [
+          ".splash"
+        ],
+        "aliases": [
+          "Splash",
+          "splash"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "configuration": {
+      "title": "Splash Check",
+      "properties": {
+        "splashCheck.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "An absolute path to the splash-lsp binary. Empty: $SPLASH_LSP, then $PATH, then a sibling checkout, then the pinned download."
+        },
+        "splashCheck.serverVersion": {
+          "type": "string",
+          "default": "2.0.0",
+          "description": "The splash-lsp version to download when no local build is found. Pinned in the manifest so the plugin and the server cannot drift apart; override it to test a local build of the server against a released plugin."
+        },
+        "splashCheck.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "description": "How long after the last keystroke a document is checked. Checking a 130 KB app takes ~200 ms, and doing it per keystroke would lag the editor."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "language": "splash",
+        "scopeName": "source.splash",
+        "path": "./syntaxes/splash.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "tsc -p tsconfig.test.json && node --test out-test/test/resolveServer.test.js out-test/test/serverDownload.test.js out-test/test/manifest.test.js",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^3.6.0"
+  }
+}
