@@ -1,0 +1,13 @@
+# splashcheck_golden golden corpus
+# checker: splashcheck 2.0.0
+app dev.example.callbackblindspot
+digest c8dd3cf5f07d5e73df1a836d773f8baff17daceba8d1de1467c7390510709aeb
+file main.splash
+bytes 136
+manifest found
+declares no net
+capabilities news
+findings 1
+  3:32 error splash.fnstub variable nope not found in scope. Did you mean: None(obj) or Top(obj), Done(obj), pow(fn), mod(obj) (+682 more)
+notes 1
+  1 host request(s) answered with a stub success, so their callbacks ran against data: nil
