@@ -16,19 +16,20 @@ import { downloadServer, extractFile } from '../src/serverDownload';
  */
 
 /** A zip archive holding one entry, as the release workflow packs one. */
-function zipOf(name: string, data: Uint8Array, method: 0 | 8 = 8): Uint8Array {
+function zipOf(name: string, data: Uint8Array, method: 0 | 8 = 8, flags = 0): Uint8Array {
   const stored = method === 0 ? data : deflateRawSync(data);
   const nameBytes = Buffer.from(name, 'utf8');
   const header = Buffer.alloc(30);
   header.writeUInt32LE(0x04034b50, 0); // local file header signature
   header.writeUInt16LE(20, 4); // version needed to extract
-  header.writeUInt16LE(0, 6); // flags
+  header.writeUInt16LE(flags, 6); // flags
   header.writeUInt16LE(method, 8); // 0 = stored, 8 = deflated
   header.writeUInt16LE(0, 10); // mod time
   header.writeUInt16LE(0, 12); // mod date
   header.writeUInt32LE(crc32(data), 14);
-  header.writeUInt32LE(stored.length, 18);
-  header.writeUInt32LE(data.length, 22);
+  // A data descriptor (flag bit 3) puts the sizes after the data, zeroed here.
+  header.writeUInt32LE(flags & 0x08 ? 0 : stored.length, 18);
+  header.writeUInt32LE(flags & 0x08 ? 0 : data.length, 22);
   header.writeUInt16LE(nameBytes.length, 26);
   header.writeUInt16LE(0, 28); // extra length
   return Buffer.concat([header, nameBytes, stored]);
@@ -68,6 +69,14 @@ describe('extractFile', () => {
     corrupted[30 + 'splash-lsp.exe'.length] ^= 0xff;
 
     assert.throws(() => extractFile(corrupted, 'splash-lsp.exe'));
+  });
+
+  test('an entry written with a data descriptor is refused, not guessed at', () => {
+    // Sizes zeroed in the header and written after the data: neither this
+    // entry's length nor the next header's offset is knowable from it.
+    const archive = zipOf('splash-lsp.exe', binary, 8, 0x08);
+
+    assert.throws(() => extractFile(archive, 'splash-lsp.exe'), /data descriptor/);
   });
 });
 
@@ -110,5 +119,13 @@ describe('downloadServer', () => {
     const destination = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'splash-check-')), 'splash-lsp-2.0.0', 'splash-lsp.exe');
 
     await assert.rejects(downloadServer('https://example.invalid/asset.zip', destination), /HTTP 404/);
+  });
+
+  test('a failed extraction leaves nothing startable at the destination', async () => {
+    globalThis.fetch = (async () => new Response(zipOf('something-else.exe', binary))) as typeof fetch;
+    const destination = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'splash-check-')), 'splash-lsp-2.0.0', 'splash-lsp.exe');
+
+    await assert.rejects(downloadServer('https://example.invalid/asset.zip', destination), /does not contain/);
+    assert.equal(fs.existsSync(destination), false, 'no partial file may pass for the version\'s binary');
   });
 });

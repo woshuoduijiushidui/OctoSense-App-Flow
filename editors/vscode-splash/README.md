@@ -41,7 +41,8 @@ The extension is only a client; the analysis lives in the `splash-lsp` binary.
 A fresh install needs nothing built: on first use the extension downloads the
 binary its manifest pins for your platform and starts it. The version is
 pinned in the manifest (`splashCheck.serverVersion`), so the plugin and the
-server do not drift apart.
+server do not drift apart, and the output channel names that version beside the
+makepad revision the binary was built from.
 
 If you have a local build, it wins — a download never shadows a statement of
 intent. In order:

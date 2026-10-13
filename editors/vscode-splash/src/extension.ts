@@ -27,6 +27,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   const configuration = vscode.workspace.getConfiguration('splashCheck');
+  // The manifest pins the version as this setting's default, so an unset
+  // setting reads the constant and a workspace setting overrides it — a person
+  // testing a local build of the server against a released plugin (ADR 0003
+  // §3). Nothing floats: no "latest", no range.
+  const pinned = pin(context);
   const resolution = await resolveServer({
     setting: configuration.get<string>('serverPath'),
     env: process.env,
@@ -34,7 +39,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     exists: (candidate) => fs.existsSync(candidate),
     platform: process.platform,
     arch: process.arch,
-    version: pinnedVersion(configuration, context),
+    version: pinned.version,
     // The download is the strategy's last source; a person who installs the
     // plugin on a fresh VS Code gets the server this way, with nothing built
     // locally (ADR 0003 §1).
@@ -48,27 +53,39 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return;
   }
 
-  await startClient(context, resolution.server);
+  await startClient(context, resolution.server, pinned);
 }
 
 /**
- * The server version to fetch: the manifest's constant, unless the workspace
- * setting overrides it — a person testing a local build of the server against
- * a released plugin (ADR 0003 §3). Nothing floats: no "latest", no range.
+ * The version the manifest pins, beside the makepad revision its release asset
+ * was built from — "which binary is this, from which source", answerable from
+ * inside the editor instead of by bisecting a fork (ADR 0003 §3).
  */
-function pinnedVersion(
-  configuration: vscode.WorkspaceConfiguration,
-  context: vscode.ExtensionContext,
-): string {
-  const configured = configuration.get<string>('serverVersion');
-  if (configured && configured.trim().length > 0) {
-    return configured.trim();
-  }
-  const manifest = context.extension.packageJSON as { splashCheck?: { serverVersion?: string } };
-  return manifest.splashCheck?.serverVersion ?? '';
+function pin(context: vscode.ExtensionContext): ServerPin {
+  const manifest = context.extension.packageJSON as { splashCheck?: { serverRevision?: string } };
+  return {
+    version: vscode.workspace.getConfiguration('splashCheck').get<string>('serverVersion') ?? '',
+    revision: manifest.splashCheck?.serverRevision ?? '',
+  };
 }
 
-async function startClient(context: vscode.ExtensionContext, server: Server): Promise<void> {
+export async function deactivate(): Promise<void> {
+  if (client) {
+    await client.stop();
+  }
+}
+
+/** The manifest's pin: the server version, and the revision it was built from. */
+interface ServerPin {
+  version: string;
+  revision: string;
+}
+
+async function startClient(
+  context: vscode.ExtensionContext,
+  server: Server,
+  serverPin: ServerPin,
+): Promise<void> {
   // The debounce is a server-side setting, passed through the environment so
   // the binary needs no configuration file.
   const debounceMs = vscode.workspace.getConfiguration('splashCheck').get<number>('debounceMs', 300);
@@ -94,7 +111,13 @@ async function startClient(context: vscode.ExtensionContext, server: Server): Pr
     await client.start();
   } catch (error) {
     void vscode.window.showErrorMessage(`Splash Check failed to start: ${String(error)}`);
+    return;
   }
+  // The pin, beside the server's own version, in the channel the client
+  // already logs to: which binary this is, from which source (ADR 0003 §3).
+  client.outputChannel.appendLine(
+    `splash-lsp ${serverPin.version} (makepad ${serverPin.revision}) — the version the manifest pins`,
+  );
 }
 
 /**
@@ -104,19 +127,23 @@ async function startClient(context: vscode.ExtensionContext, server: Server): Pr
  * self-serve can without a round trip through a search engine.
  */
 function explainUnavailable(reason: UnavailableReason): void {
+  const { notice, cause } = explanation(reason);
   const channel = vscode.window.createOutputChannel('Splash Check');
   channel.appendLine('Splash Check: the splash-lsp server is unavailable, so only highlighting is active.');
-  channel.appendLine(`Cause: ${explanation(reason).cause}`);
+  channel.appendLine(`Cause: ${cause}`);
   channel.appendLine('To build the server yourself:');
   channel.appendLine('  cargo build --release -p makepad-widgets --bin splash-lsp --features maps');
   channel.appendLine('Then point the extension at it: "splashCheck.serverPath", $SPLASH_LSP, or your PATH.');
 
-  if (noticedReasons.has(reason.kind)) {
+  // Once per session per reason — the whole reason, so a second failure with a
+  // different cause is still a sentence the person has not read yet.
+  const seen = JSON.stringify(reason);
+  if (noticedReasons.has(seen)) {
     return;
   }
-  noticedReasons.add(reason.kind);
+  noticedReasons.add(seen);
   void vscode.window
-    .showWarningMessage(`${explanation(reason).notice} See the output channel.`, 'Show Output')
+    .showWarningMessage(`${notice} See the output channel.`, 'Show Output')
     .then((choice) => {
       if (choice === 'Show Output') {
         channel.show();

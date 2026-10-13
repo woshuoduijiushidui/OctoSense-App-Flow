@@ -11,8 +11,6 @@ import { resolveServer, type ResolveInputs } from '../src/resolveServer';
  * the suite reads the same whichever platform runs it.
  */
 
-const exeName = (platform: string) => (platform === 'win32' ? 'splash-lsp.exe' : 'splash-lsp');
-
 /** An `exists` that recognises exactly the given paths, whatever the separator. */
 const existsIn = (...paths: string[]) => {
   const wanted = new Set(paths.map((candidate) => path.normalize(candidate)));
@@ -180,7 +178,7 @@ describe('the download, the last source', () => {
     assert.equal(called, false, 'nothing is fetched for a platform no asset was published for');
   });
 
-  test('a failed download falls back to the discovery chain and does not throw', async () => {
+  test('a failed download does not throw, and leaves the chain\'s answer with the cause', async () => {
     const resolution = await resolveServer(
       baseInputs({
         download: {

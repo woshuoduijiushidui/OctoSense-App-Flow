@@ -9,7 +9,7 @@
     "vscode": "^1.85.0"
   },
   "splashCheck": {
-    "serverVersion": "2.0.0"
+    "serverRevision": "0bbd43a7bb53ca997ad0f9bd3e8abca8a797bcc0"
   },
   "categories": [
     "Linters",
@@ -29,10 +29,30 @@
         "aliases": [
           "Splash",
           "splash"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
-    "configuration": "./language-configuration.json",
+    "configuration": {
+      "title": "Splash Check",
+      "properties": {
+        "splashCheck.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "An absolute path to the splash-lsp binary. Empty: $SPLASH_LSP, then $PATH, then a sibling checkout, then the pinned download."
+        },
+        "splashCheck.serverVersion": {
+          "type": "string",
+          "default": "2.0.0",
+          "description": "The splash-lsp version to download when no local build is found. Pinned in the manifest so the plugin and the server cannot drift apart; override it to test a local build of the server against a released plugin."
+        },
+        "splashCheck.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "description": "How long after the last keystroke a document is checked. Checking a 130 KB app takes ~200 ms, and doing it per keystroke would lag the editor."
+        }
+      }
+    },
     "grammars": [
       {
         "language": "splash",

@@ -35,6 +35,14 @@ export function extractFile(archive: Uint8Array, name: string): Uint8Array | und
       // local header is the end of the entries this reader walks.
       return undefined;
     }
+    const flags = view.getUint16(offset + 6, true);
+    if (flags & 0x08) {
+      // A data descriptor puts the sizes after the data, zeroed in the header,
+      // so neither this entry's length nor the next header's offset is known.
+      // The archive this repository publishes does not use one; an entry that
+      // does is refused rather than guessed at.
+      throw new Error('the archive stores an entry with a data descriptor, which this reader does not read');
+    }
     const method = view.getUint16(offset + 8, true);
     const checksum = view.getUint32(offset + 14, true);
     const compressedSize = view.getUint32(offset + 18, true);
@@ -92,7 +100,14 @@ export async function downloadServer(url: string, destination: string): Promise<
   if (!binary) {
     throw new Error(`the archive at ${url} does not contain ${name}`);
   }
-  fs.writeFileSync(destination, binary);
+  // Written beside the destination and renamed into place: a download
+  // interrupted mid-write must not leave a partial file that the next
+  // activation's cache check would take for the version's binary and start.
+  // The checksum was verified in memory before anything touched the disk, so
+  // the only window this closes is the write itself.
+  const partial = `${destination}.partial`;
+  fs.writeFileSync(partial, binary);
+  fs.renameSync(partial, destination);
   if (process.platform !== 'win32') {
     // A downloaded binary is not executable until it is made so; the archive
     // carries no permissions and the release does not set them.
