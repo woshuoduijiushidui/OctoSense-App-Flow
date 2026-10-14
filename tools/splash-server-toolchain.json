@@ -5,8 +5,8 @@
     "version": "2.0.0",
     "source": {
       "repository": "woshuoduijiushidui/makepad",
-      "branch": "feat/splashcheck",
-      "revision": "0bbd43a7bb53ca997ad0f9bd3e8abca8a797bcc0",
+      "branch": "feat/splash-completion",
+      "revision": "287b516d52de6af8204ae624b367c33ce98e26e4",
       "package": "makepad-widgets",
       "bin": "splash-lsp",
       "features": [

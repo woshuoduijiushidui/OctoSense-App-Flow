@@ -9,7 +9,7 @@
     "vscode": "^1.85.0"
   },
   "splashCheck": {
-    "serverRevision": "0bbd43a7bb53ca997ad0f9bd3e8abca8a797bcc0"
+    "serverRevision": "287b516d52de6af8204ae624b367c33ce98e26e4"
   },
   "categories": [
     "Linters",
@@ -65,7 +65,7 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "test": "tsc -p tsconfig.test.json && node --test out-test/test/resolveServer.test.js out-test/test/serverDownload.test.js out-test/test/manifest.test.js",
-    "package": "vsce package"
+    "package": "vsce package --allow-missing-repository"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"

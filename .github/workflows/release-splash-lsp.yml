@@ -213,11 +213,51 @@ jobs:
           path: ${{ steps.record.outputs.asset }}
           if-no-files-found: error
 
+  plugin:
+    name: Package the editor plugin
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      # The release is the server and the plugin together: the plugin's
+      # manifest pins the server version it downloads, so the pair a person
+      # installs is the pair published side by side. ADR 0003 keeps the
+      # platform binaries out of the .vsix -- they would triple the package
+      # every person downloads to serve the one platform they use -- so the
+      # release page is where the two meet.
+      - name: Compile and package the extension
+        working-directory: editors/vscode-splash
+        run: |
+          npm ci
+          npm run compile
+          npm run package
+
+      - name: The package the manifest names
+        id: packed
+        run: |
+          version=$(node -p "require('./editors/vscode-splash/package.json').version")
+          asset="editors/vscode-splash/splash-check-${version}.vsix"
+          test -f "$asset" || { echo "::error::no $asset was produced"; exit 1; }
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: splash-check
+          path: ${{ steps.packed.outputs.asset }}
+          if-no-files-found: error
+
   release:
     name: Publish
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    needs: [build]
+    needs: [build, plugin]
     permissions:
       contents: write
     steps:
@@ -236,11 +276,25 @@ jobs:
         id: notes
         shell: python
         run: |
-          import os, pathlib, sys
+          import hashlib, json, os, pathlib, sys
           sys.path.insert(0, 'tools')
           import splash_server_release as record
           pin = record.read_pin()
           pathlib.Path('NOTES.md').write_text(record.release_notes(pin, 'assets'), encoding='utf-8')
+          # The plugin ships in the same release, at the version its manifest
+          # pins; its digest is computed from the uploaded bytes for the same
+          # reason the server's is.
+          version = json.loads(pathlib.Path('editors/vscode-splash/package.json').read_text(encoding='utf-8'))['version']
+          asset = pathlib.Path('assets') / f'splash-check-{version}.vsix'
+          if not asset.is_file():
+              raise SystemExit(f'no {asset.name} in assets')
+          digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+          with open('NOTES.md', 'a', encoding='utf-8') as notes:
+              notes.write(
+                  f'\nThe `splash-check` editor plugin, version {version}: '
+                  f'`{asset.name}` (SHA-256 `{digest}`). It starts by looking for '
+                  'a local build and otherwise downloads the server assets above, '
+                  'at the version its manifest pins.\n')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write('tag=' + pin['server']['release']['tag'] + '\n')
 
@@ -254,4 +308,4 @@ jobs:
             exit 1
           fi
           gh release create "${{ steps.notes.outputs.tag }}" --repo "$GITHUB_REPOSITORY" \
-            --verify-tag --title "${{ steps.notes.outputs.tag }}" --notes-file NOTES.md assets/*.zip
+            --verify-tag --title "${{ steps.notes.outputs.tag }}" --notes-file NOTES.md assets/*

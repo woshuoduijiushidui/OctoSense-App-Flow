@@ -1,7 +1,7 @@
 # ADR 0003: Download-first distribution: a pinned server, one notice, and an activation that never fails
 
 - **Date:** 2026-10-13
-- **Status:** Accepted (2026-10-13). Not yet implemented: the release assets are issue #2 and the resolver with its download is issue #7, both in this repository.
+- **Status:** Accepted (2026-10-13). Implemented in this repository: the release record and workflow that publish the assets, and the resolver with its download as its last source.
 - **Scope:** How the Splash language server reaches a person who installs the editor plugin — where the binary comes from, how its version is pinned, what happens when it cannot be fetched, and which part of that is a pure function with tests. It does not decide the server's behaviour (ADR 0002) or its query API (ADR 0001), and it does not cover embedding platform binaries in the `.vsix`, which is a separate spec.
 - **Relates to:** [ADR 0001](0001-vm-query-api-two-functions.md), [ADR 0002](0002-analysis-posture-and-one-suppression-rule.md); App Flow #1 (the spec), #2, #7, #8.
 
