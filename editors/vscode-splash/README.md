@@ -18,6 +18,47 @@ and it does not drift: the binary and the framework it checks are one revision.
   binding jumps to its declaration; the outline view lists them. Textual, over
   the DSL's three binding forms: the VM holds the real scopes but exposes no
   "where is this name declared" query.
+* **Completion as you type** — a widget name where a constructor goes, the
+  properties a widget accepts inside its braces, the values a property
+  accepts, and the members of `sys.` / `host.` / `mod.` after a `.`. Every
+  name is read out of the registry the app itself runs against, so a
+  suggestion cannot be a name that does not exist, and each item says which
+  registry path it came from. It works on an unsaved buffer, because the
+  buffer is what you are typing.
+
+## What it completes, and from where
+
+The names come from a live isolate — the same VM, the same widget families,
+the same `sys` / `host` / `fs` an app's body runs in — read through the VM's
+query API. Nothing is a hand-written list, and nothing is generated ahead of
+time, so the list cannot drift from the framework the plugin checks.
+
+* **At a constructor name** — the widget families. Not every name in the
+  widget table is a family: the modules register enums (`Flow`, `Align`) and
+  api objects beside them, and a family is the one the VM has a property
+  table for. A family with no property at all is not offered, because the
+  registry exposes no other marker to tell it from an enum.
+* **Inside a widget's braces** — the properties that widget accepts, its own
+  and the ones it inherits. They live in the type's property table, not on
+  the object: a widget's registration block sets only the fields it changes,
+  so the object answers a handful of names where the type answers the whole
+  set an app may write.
+* **After `name:`** — the values that property accepts. An enum's variants
+  are the enum object's keys, so `width:` offers `Fill`, `Fit`, `Fixed`.
+* **After `.`** — the names the receiver holds: a module's members
+  (`sys.weather`), a type's variants (`Size.Fill`), or a property's own type
+  (`draw_bg.`).
+
+Inside a widget's braces an item can be a property or a child widget, and the
+DSL does not say which until the `{` arrives, so both are offered and each
+says where it came from.
+
+Stated boundaries, rather than discovered: a draw field is registered as its
+shader, so a `draw_bg +: {}` block offers the shader's own fields — a `+:`
+merge accepts keys no table declares (`color` works and is in no table), so
+that list is a subset. And a name that only exists at runtime — a local's
+object, a value the body computed — is not in the registry and is not
+suggested, which is the failure mode the whole design exists to avoid.
 
 ## What it finds
 

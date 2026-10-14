@@ -1,7 +1,7 @@
 # ADR 0001: The VM query API: two functions, and nothing else
 
 - **Date:** 2026-10-13
-- **Status:** Accepted (2026-10-13). Implemented as issue #9, in [OctoSense-org/makepad](https://github.com/OctoSense-org/makepad), `platform/script` (crate `makepad-script`, version 1.0.0), commit `136e775`: `query::object_keys` and `query::module_object`; the fixture corpus `platform/script/tests/query_corpus.txt` with a runner per installing crate (`cargo test -p makepad-script` for the modules the crate itself installs, `cargo test -p makepad-widgets` for the isolate's widget-facing modules); and the checked-in surface file `platform/script/tests/query_api_surface.txt`, which `tests/query_api_surface.rs` enforces — the semver check's equivalent, since there is no CI and no crates.io. The chain-walk proof §2 asks for is `tests/query_api.rs::the_prototype_chain_is_walkable_from_outside_with_the_existing_accessors`.
+- **Status:** Accepted (2026-10-13). Implemented as issue #9, in [OctoSense-org/makepad](https://github.com/OctoSense-org/makepad), `platform/script` (crate `makepad-script`, version 1.0.0), commit `136e775`: `query::object_keys` and `query::module_object`; the fixture corpus `platform/script/tests/query_corpus.txt` with a runner per installing crate (`cargo test -p makepad-script` for the modules the crate itself installs, `cargo test -p makepad-widgets` for the isolate's widget-facing modules); and the checked-in surface file `platform/script/tests/query_api_surface.txt`, which `tests/query_api_surface.rs` enforces — the semver check's equivalent, since there is no CI and no crates.io. The chain-walk proof §2 asks for is `tests/query_api.rs::the_prototype_chain_is_walkable_from_outside_with_the_existing_accessors`. Its first consumer is the completion provider (issue #8), in `woshuoduijiushidui/makepad` branch `feat/splashcheck`: `widgets/src/splash_complete.rs` and the `textDocument/completion` half of `widgets/src/splash_lsp.rs` — see **What issue #8 measured** below, which corrects §2 on one point without amending the API.
 - **Scope:** How an editor-facing consumer asks the Splash VM which names exist — what the query API contains, what it deliberately leaves out, and how its stability is promised. It does not decide what the language server does with the answer; that is [ADR 0002](0002-analysis-posture-and-one-suppression-rule.md) and issue #8. This record lives in App Flow, where the spec and every ticket that cites it live; the code it governs lands in the makepad fork.
 - **Relates to:** [ADR 0002](0002-analysis-posture-and-one-suppression-rule.md), [ADR 0003](0003-download-first-server-distribution.md); App Flow #1 (the spec), #8, #9; OctoSense [ADR 0005](https://github.com/OctoSense-org/OctoSense/blob/main/docs/adr/0005-app-contract.md), whose stability discipline this copies because it solved the same problem for a shared crate.
 
@@ -67,6 +67,43 @@ In `makepad-script` (`platform/script`), the shared VM crate, not in `makepad-wi
 - The completion provider (issue #8) becomes a reader: it asks for keys, walks protos itself, and formats. It cannot be wrong about whether a name exists, which was the whole point.
 - A consumer cannot ask the VM "what properties does type X have", "what are this enum's variants as a list", or "where is this name declared". Those are either derivable from the two functions or are a separate decision with its own stability cost. If a third function is ever needed, this ADR is amended, not quietly extended.
 - Every consumer pays for the corpus: a change to a module's members is a visible diff in a checked-in file, which is the intended friction.
+
+## What issue #8 measured (2026-10-14)
+
+The completion provider is the first consumer, and building it corrected one
+assumption above without changing either function:
+
+- **§2 expected the prototype chain to be where inherited properties are. It
+  is not.** `mod.widgets.Label`'s own `proto` chain stops at the widget's own
+  base and never reaches `View`, and it answers four names; the widget's
+  *type* answers twenty-two, including the ones it inherits, because the
+  derive macro merges the base's fields into the child's property table. So a
+  consumer reads `ScriptHeap::object_type_id` → `registered_type` →
+  `ScriptTypeProps::iter_ordered` for a type's legal names, and walks the
+  chain only to find the first typed object. The chain is still walked, and
+  `object_keys` is still the reader for an object's own names — neither
+  function was wrong, the policy question §2 left open just has a different
+  answer than the one it guessed.
+- **The widget table is not a list of widget families.** `mod.widgets` holds
+  400 names, 35 of which are types the widget modules also register — enums
+  (`Flow`, `Align`), api objects (`MenuItem`) and draw shaders. A family is
+  the one whose chain reaches an object with a property table, which is what
+  makes `Label{ width: … }` legal and `Flow{ width: … }` not. A family with no
+  property at all is therefore not offered (`BareStep`): the registry exposes
+  no other marker, and a missed name is the cheaper error.
+- **`sys` and `agent` are not in an isolate.** They are injected globals a
+  host installs on its own VM, and the isolate setup installs neither — an
+  isolate's injected-global table is empty. A consumer that reads an isolate
+  has to install them first, or it will report that `sys.weather` does not
+  exist.
+- **A draw field is registered as its shader.** `View.draw_bg`'s type is
+  `DrawQuad`, whose table is the shader's own fields, while `draw_bg +: {
+  color: … }` checks clean and `color` is in no table: a `+:` merge accepts
+  keys the type never declared. So a property block answered from the type is
+  a subset of what the VM accepts there — the safe direction, since nothing
+  suggested is a name the registry does not hold.
+
+None of this needs a third function, which is the point of §1's count.
 
 ## Alternatives considered
 
